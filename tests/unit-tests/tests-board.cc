@@ -158,7 +158,7 @@ TESTSUITE(board)
 				"   ...   "
 				"    .    "
 				"    o    "
-				" +  o   ."
+				"   +o   ."
 				"..ookoo.."
 				".   o   ."
 				"    o    "

@@ -120,6 +120,21 @@ public:
 				start != B_KING))
 			return false;
 
+		int dirX = dir(dx - sx);
+		int dirY = dir(dy - sy);
+
+		// Check the path from sx,sy -> dx,dy
+		while (sx != dx || sy != dy) {
+			uint8_t next;
+
+			sx = sx + dirX;
+			sy = sy + dirY;
+			next = m_board[sy * m_w + sx];
+
+			if (next != B_EMPTY)
+				return false;
+		}
+
 		return true;
 	}
 
@@ -173,6 +188,17 @@ public:
 	}
 
 private:
+	int dir(int v)
+	{
+		if (v == 0)
+			return 0;
+
+		if (v < 0)
+			return -1;
+
+		return 1;
+	}
+
 	void moveToXy(Move &move, int *sx, int *sy, int *dx, int *dy)
 	{
 		*sx = move.m_from.m_x;

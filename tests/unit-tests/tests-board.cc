@@ -74,34 +74,36 @@ public:
 	}
 };
 
-
-TEST(createBoard, BoardFixture)
+TESTSUITE(board)
 {
-	IBoard *p, *other;
-	std::string wrongFirst = BOARD_9X9_INIT_STRING;
-	std::string wrongChar = BOARD_9X9_INIT_STRING;
-	std::string twoKings = BOARD_9X9_INIT_STRING;
+	TEST(createBoard, BoardFixture)
+	{
+		IBoard *p, *other;
+		std::string wrongFirst = BOARD_9X9_INIT_STRING;
+		std::string wrongChar = BOARD_9X9_INIT_STRING;
+		std::string twoKings = BOARD_9X9_INIT_STRING;
 
-	wrongFirst[0] = 'f';
-	p = IBoard::fromString(wrongFirst); // Wrong first character type
-	ASSERT_TRUE(!p);
+		wrongFirst[0] = 'f';
+		p = IBoard::fromString(wrongFirst); // Wrong first character type
+		ASSERT_TRUE(!p);
 
-	p = IBoard::fromString("Bbroken"); // Wrong count
-	ASSERT_TRUE(!p);
-	wrongFirst[0] = 'f';
+		p = IBoard::fromString("Bbroken"); // Wrong count
+		ASSERT_TRUE(!p);
+		wrongFirst[0] = 'f';
 
-	wrongChar[1] = 'i'; // Not OK
-	p = IBoard::fromString(wrongChar); // Wrong character in the middle
-	ASSERT_TRUE(!p);
+		wrongChar[1] = 'i'; // Not OK
+		p = IBoard::fromString(wrongChar); // Wrong character in the middle
+		ASSERT_TRUE(!p);
 
-	twoKings[1] = 'k'; // Not OK
-	p = IBoard::fromString(twoKings);
-	ASSERT_TRUE(!p);
+		twoKings[1] = 'k'; // Not OK
+		p = IBoard::fromString(twoKings);
+		ASSERT_TRUE(!p);
 
-	p = IBoard::fromString(BOARD_9X9_INIT_STRING);
-	other = IBoard::fromString(toBoardString(initialBoard9x9));
+		p = IBoard::fromString(BOARD_9X9_INIT_STRING);
+		other = IBoard::fromString(toBoardString(initialBoard9x9));
 
-	ASSERT_TRUE(p);
-	ASSERT_TRUE(other);
-	ASSERT_TRUE(p->toString() == other->toString());
+		ASSERT_TRUE(p);
+		ASSERT_TRUE(other);
+		ASSERT_TRUE(p->toString() == other->toString());
+	}
 }

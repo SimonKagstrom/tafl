@@ -13,6 +13,7 @@ project (unit-test)
 set (TGT ut)
 
 set (${TGT}_SRCS
+	../../src/board.cc
     main.cc
     tests-board.cc
     )
@@ -34,5 +35,6 @@ add_executable (${TGT} ${${TGT}_SRCS})
 target_link_libraries(${TGT}
 	${LIBCRPCUT_LIBRARIES}
 	${GMOCK_BOTH_LIBRARIES}
+	gtest
 	dl
 )

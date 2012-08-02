@@ -142,7 +142,77 @@ TESTSUITE(board)
 	}
 
 
-	TEST(testMoves, BoardFixture)
+	TEST(testInvalidMoves, BoardFixture)
+	{
+		const std::string start =
+				"   ...   "
+				"    .    "
+				"    o    "
+				"+   o   ."
+				"..ookoo.."
+				".   o   ."
+				"    o    "
+				"    .    "
+				"   ...   ";
+		const std::string end =
+				"   ...   "
+				"    .    "
+				"    o    "
+				"    o+  ."
+				"..ookoo.."
+				".   o   ."
+				"    o    "
+				"    .    "
+				"   ...   ";
+
+		IBoard *p;
+		bool res;
+
+		p = IBoard::fromString(toBoardString(start));
+		ASSERT_TRUE(p);
+
+		// Should not be the same
+		ASSERT_TRUE(p->getTurn() == IBoard::BLACK);
+
+		// Invalid moves
+		IBoard::Move move;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		move.m_from.m_x = -1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Not a piece
+		move.m_from.m_x = 1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Move to non-empty
+		move.m_from.m_x = 3;
+		move.m_to.m_x = 4;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Diagonal movement
+		move.m_from.m_x = 3;
+		move.m_from.m_y = 0;
+		move.m_to.m_x = 2;
+		move.m_to.m_y = 1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Crosses other piece
+		res = constructMove(start, end, move);
+		ASSERT_TRUE(res);
+
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		delete p;
+	}
+
+	TEST(testValidMoves, BoardFixture)
 	{
 		const std::string start =
 				"   ...   "
@@ -174,39 +244,8 @@ TESTSUITE(board)
 		other = IBoard::fromString(toBoardString(end));
 		ASSERT_TRUE(other);
 
-		// Should not be the same
-		ASSERT_TRUE(other->toString() != p->toString());
-		ASSERT_TRUE(p->getTurn() == IBoard::BLACK);
-
-		// Invalid moves
-		IBoard::Move move;
-		res = p->canMove(move);
-		ASSERT_TRUE(!res);
-
-		move.m_from.m_x = -1;
-		res = p->canMove(move);
-		ASSERT_TRUE(!res);
-
-		// Not a piece
-		move.m_from.m_x = 1;
-		res = p->canMove(move);
-		ASSERT_TRUE(!res);
-
-		// Move to non-empty
-		move.m_from.m_x = 3;
-		move.m_to.m_x = 4;
-		res = p->canMove(move);
-		ASSERT_TRUE(!res);
-
-		// Diagonal movement
-		move.m_from.m_x = 3;
-		move.m_from.m_y = 0;
-		move.m_to.m_x = 2;
-		move.m_to.m_y = 1;
-		res = p->canMove(move);
-		ASSERT_TRUE(!res);
-
 		// Valid move
+		IBoard::Move move;
 		res = constructMove(start, end, move);
 		ASSERT_TRUE(res);
 

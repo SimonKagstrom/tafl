@@ -72,7 +72,7 @@ public:
 	}
 
 
-	MoveList_t getPossibleMoves(Piece piece)
+	MoveList_t getPossibleMoves(Piece &piece)
 	{
 		MoveList_t out;
 

@@ -55,6 +55,10 @@ namespace tafl
 		class Piece
 		{
 		public:
+			Piece() : m_color(BLACK), m_location(Point(0,0))
+			{
+			}
+
 			Color_t m_color;
 			Point m_location;
 		};
@@ -76,7 +80,7 @@ namespace tafl
 		virtual bool getPiece(Point where, Piece &out) = 0;
 
 
-		virtual MoveList_t getPossibleMoves(Piece piece) = 0;
+		virtual MoveList_t getPossibleMoves(Piece &piece) = 0;
 
 
 		virtual bool canMove(Move &move) = 0;

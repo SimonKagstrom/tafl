@@ -68,13 +68,56 @@ public:
 
 	bool getPiece(Point where, Piece &out)
 	{
-		return false;
+		if (where.m_x < 0 || where.m_y >= m_w ||
+				where.m_y < 0 || where.m_y >= m_h)
+			return false;
+
+		uint8_t piece = m_board[where.m_y * m_w + where.m_x];
+
+		if (piece != B_BLACK &&
+				piece != B_WHITE &&
+				piece != B_KING)
+			return false;
+
+		out.m_color = piece == B_BLACK ? BLACK : WHITE;
+		out.m_location = where;
+
+		return true;
 	}
 
 
 	MoveList_t getPossibleMoves(Piece &piece)
 	{
 		MoveList_t out;
+		int sx, sy, x, y;
+
+		sx = x = piece.m_location.m_x;
+		sy = y = piece.m_location.m_y;
+
+		// Horizontal
+		for (x = sx + 1; x < m_w; x++) {
+			if (m_board[sy * m_w + x] != B_EMPTY)
+				break;
+			out.push_back(Move(sx, sy, x, sy));
+		}
+		for (x = sx - 1; x >= 0; x--) {
+			if (m_board[sy * m_w + x] != B_EMPTY)
+				break;
+			out.push_back(Move(sx, sy, x, sy));
+		}
+
+		// Vertical
+		for (y = sy + 1; y < m_w; y++) {
+			if (m_board[y * m_w + sx] != B_EMPTY)
+				break;
+			out.push_back(Move(sx, sy, sx, y));
+		}
+		for (y = sy - 1; y >= 0; y--) {
+			if (m_board[y * m_w + sx] != B_EMPTY)
+				break;
+			out.push_back(Move(sx, sy, sx, y));
+		}
+
 
 		return out;
 	}
@@ -199,12 +242,16 @@ private:
 		return 1;
 	}
 
+	void pointToXy(Point &pt, int *x, int *y)
+	{
+		*x = pt.m_x;
+		*y = pt.m_y;
+	}
+
 	void moveToXy(Move &move, int *sx, int *sy, int *dx, int *dy)
 	{
-		*sx = move.m_from.m_x;
-		*sy = move.m_from.m_y;
-		*dx = move.m_to.m_x;
-		*dy = move.m_to.m_y;
+		pointToXy(move.m_from, sx, sy);
+		pointToXy(move.m_from, dx, dy);
 	}
 
 

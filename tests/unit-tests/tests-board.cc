@@ -249,6 +249,13 @@ TESTSUITE(board)
 		res = constructMove(start, end, move);
 		ASSERT_TRUE(res);
 
+		IBoard::Piece piece;
+		res = p->getPiece(move.m_from, piece);
+		ASSERT_TRUE(res);
+
+		IBoard::MoveList_t possibleMoves = p->getPossibleMoves(piece);
+		ASSERT_EQ(possibleMoves.size(), 3 + 3); // Vertical and horizontal
+
 		res = p->canMove(move);
 		ASSERT_TRUE(res);
 

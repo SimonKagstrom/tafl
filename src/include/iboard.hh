@@ -33,6 +33,11 @@ namespace tafl
 		class Move
 		{
 		public:
+			Move() :
+				m_from(Point(0, 0)), m_to(Point(0, 0))
+			{
+			}
+
 			Move(int sx, int sy, int dx, int dy) :
 				m_from(Point(sx, sy)), m_to(Point(dx, dy))
 			{

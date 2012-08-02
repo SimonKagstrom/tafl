@@ -72,6 +72,37 @@ public:
 
 		return out;
 	}
+
+	bool getXy(std::string gfx, int *x, int *y)
+	{
+		unsigned int w = gfx.size() == 9 * 9 ? 9 : 11;
+		bool out = false;
+
+		for (unsigned int i = 0; i < gfx.size(); i++) {
+			switch (gfx[i])
+			{
+			case 'O':
+			case '+':
+			case 'K':
+				*y = i / w;
+				*x = i % w;
+				out = true;
+				break;
+			default:
+				break;
+			}
+		}
+
+		return out;
+	}
+
+	bool constructMove(std::string start, std::string end, IBoard::Move &out)
+	{
+		bool s = getXy(start, &out.m_from.m_x, &out.m_from.m_y);
+		bool e = getXy(end, &out.m_to.m_x, &out.m_to.m_y);
+
+		return s == true && e == true;
+	}
 };
 
 TESTSUITE(board)
@@ -105,5 +136,82 @@ TESTSUITE(board)
 		ASSERT_TRUE(p);
 		ASSERT_TRUE(other);
 		ASSERT_TRUE(p->toString() == other->toString());
+
+		delete p;
+		delete other;
+	}
+
+
+	TEST(testMoves, BoardFixture)
+	{
+		const std::string start =
+				"   ...   "
+				"    .    "
+				"    o    "
+				"+   o   ."
+				"..ookoo.."
+				".   o   ."
+				"    o    "
+				"    .    "
+				"   ...   ";
+		const std::string end =
+				"   ...   "
+				"    .    "
+				"    o    "
+				" +  o   ."
+				"..ookoo.."
+				".   o   ."
+				"    o    "
+				"    .    "
+				"   ...   ";
+
+		IBoard *p, *other;
+		bool res;
+
+		p = IBoard::fromString(toBoardString(start));
+		ASSERT_TRUE(p);
+
+		other = IBoard::fromString(toBoardString(end));
+		ASSERT_TRUE(other);
+
+		// Should not be the same
+		ASSERT_TRUE(other->toString() != p->toString());
+		ASSERT_TRUE(p->getTurn() == IBoard::BLACK);
+
+		// Invalid moves
+		IBoard::Move move;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		move.m_from.m_x = -1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Not a piece
+		move.m_from.m_x = 1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Move to non-empty
+		move.m_from.m_x = 3;
+		move.m_to.m_x = 4;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
+		// Valid move
+		res = constructMove(start, end, move);
+		ASSERT_TRUE(res);
+
+		res = p->canMove(move);
+		ASSERT_TRUE(res);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		ASSERT_TRUE(other->toString() == p->toString());
+		ASSERT_TRUE(p->getTurn() == IBoard::WHITE);
+
+		delete p;
+		delete other;
 	}
 }

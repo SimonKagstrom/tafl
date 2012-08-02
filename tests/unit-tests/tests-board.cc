@@ -198,6 +198,14 @@ TESTSUITE(board)
 		res = p->canMove(move);
 		ASSERT_TRUE(!res);
 
+		// Diagonal movement
+		move.m_from.m_x = 3;
+		move.m_from.m_y = 0;
+		move.m_to.m_x = 2;
+		move.m_to.m_y = 1;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
 		// Valid move
 		res = constructMove(start, end, move);
 		ASSERT_TRUE(res);

@@ -107,7 +107,8 @@ public:
 				start != B_KING)
 			return false;
 
-		if (end != B_EMPTY)
+		if (end != B_EMPTY ||
+				(end == B_CORNER && start != B_KING))
 			return false;
 
 		if (m_currentTurn == BLACK &&

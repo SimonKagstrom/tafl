@@ -110,6 +110,15 @@ public:
 		if (end != B_EMPTY)
 			return false;
 
+		if (m_currentTurn == BLACK &&
+				start != B_BLACK)
+			return false;
+
+		if (m_currentTurn == WHITE &&
+				(start != B_WHITE ||
+				start != B_KING))
+			return false;
+
 		return true;
 	}
 

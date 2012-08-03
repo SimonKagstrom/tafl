@@ -22,12 +22,12 @@ namespace tafl
 		class Point
 		{
 		public:
-			Point(int x, int y) : m_x(x), m_y(y)
+			Point(unsigned int x, unsigned int y) : m_x(x), m_y(y)
 			{
 			}
 
-			int m_x;
-			int m_y;
+			unsigned int m_x;
+			unsigned int m_y;
 		};
 
 		class Move

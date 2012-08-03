@@ -73,7 +73,7 @@ public:
 		return out;
 	}
 
-	bool getXy(std::string gfx, int *x, int *y)
+	bool getXy(std::string gfx, unsigned int *x, unsigned int *y)
 	{
 		unsigned int w = gfx.size() == 9 * 9 ? 9 : 11;
 		bool out = false;

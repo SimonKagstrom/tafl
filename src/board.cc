@@ -1,4 +1,5 @@
 #include <iboard.hh>
+#include <string.h>
 
 using namespace tafl;
 
@@ -47,6 +48,14 @@ public:
 				break;
 			}
 		}
+	}
+
+	Board(Board *other) :
+		m_currentTurn(other->m_currentTurn), m_h(other->m_h), m_w(other->m_w)
+	{
+		m_board = new uint8_t[m_h * m_w];
+
+		memcpy(m_board, other->m_board, sizeof(uint8_t) * m_h * m_w);
 	}
 
 	~Board()
@@ -299,3 +308,7 @@ IBoard *IBoard::fromString(std::string str)
 	return new Board(str);
 }
 
+IBoard *IBoard::fromBoard(IBoard *other)
+{
+	return new Board((Board *)other);
+}

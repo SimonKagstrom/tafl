@@ -109,7 +109,7 @@ TESTSUITE(board)
 {
 	TEST(createBoard, BoardFixture)
 	{
-		IBoard *p, *other;
+		IBoard *p, *other, *copy;
 		std::string wrongFirst = BOARD_9X9_INIT_STRING;
 		std::string wrongChar = BOARD_9X9_INIT_STRING;
 		std::string twoKings = BOARD_9X9_INIT_STRING;
@@ -132,13 +132,16 @@ TESTSUITE(board)
 
 		p = IBoard::fromString(BOARD_9X9_INIT_STRING);
 		other = IBoard::fromString(toBoardString(initialBoard9x9));
+		copy = IBoard::fromBoard(other);
 
 		ASSERT_TRUE(p);
 		ASSERT_TRUE(other);
 		ASSERT_TRUE(p->toString() == other->toString());
+		ASSERT_TRUE(copy->toString() == other->toString());
 
 		delete p;
 		delete other;
+		delete copy;
 	}
 
 

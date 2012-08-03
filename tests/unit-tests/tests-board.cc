@@ -299,6 +299,8 @@ TESTSUITE(board)
 		ASSERT_EQ(pieces.size(), 7);
 		pieces = p->getPieces(IBoard::BLACK);
 		ASSERT_EQ(pieces.size(), 16);
+		pieces = p->getPieces(IBoard::BOTH);
+		ASSERT_EQ(pieces.size(), 7 + 16);
 
 		delete p;
 		delete other;

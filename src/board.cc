@@ -77,7 +77,9 @@ public:
 			bool res;
 
 			res = getPiece(Point(i % m_w, i / m_h), piece);
-			if (res && piece.m_color == color)
+			if (res && color == BOTH)
+				out.push_back(piece);
+			else if (res && piece.m_color == color)
 				out.push_back(piece);
 		}
 

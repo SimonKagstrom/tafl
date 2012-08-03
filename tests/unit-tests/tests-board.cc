@@ -236,6 +236,9 @@ TESTSUITE(board)
 				"   ...   ";
 
 		IBoard *p, *other;
+		IBoard::Move move;
+		IBoard::Piece piece;
+		IBoard::MoveList_t possibleMoves;
 		bool res;
 
 		p = IBoard::fromString(toBoardString(start));
@@ -245,15 +248,14 @@ TESTSUITE(board)
 		ASSERT_TRUE(other);
 
 		// Valid move
-		IBoard::Move move;
 		res = constructMove(start, end, move);
 		ASSERT_TRUE(res);
 
-		IBoard::Piece piece;
 		res = p->getPiece(move.m_from, piece);
 		ASSERT_TRUE(res);
 
-		IBoard::MoveList_t possibleMoves = p->getPossibleMoves(piece);
+
+		possibleMoves = p->getPossibleMoves(piece);
 		ASSERT_EQ(possibleMoves.size(), 3 + 3); // Vertical and horizontal
 
 		res = p->canMove(move);
@@ -264,6 +266,14 @@ TESTSUITE(board)
 
 		ASSERT_TRUE(other->toString() == p->toString());
 		ASSERT_TRUE(p->getTurn() == IBoard::WHITE);
+
+
+		// The king can't move now
+		res = p->getPiece(IBoard::Point(4,4), piece);
+		ASSERT_TRUE(res);
+
+		possibleMoves = p->getPossibleMoves(piece);
+		ASSERT_EQ(possibleMoves.size(), 0);
 
 		delete p;
 		delete other;

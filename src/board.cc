@@ -251,7 +251,7 @@ private:
 	void moveToXy(Move &move, int *sx, int *sy, int *dx, int *dy)
 	{
 		pointToXy(move.m_from, sx, sy);
-		pointToXy(move.m_from, dx, dy);
+		pointToXy(move.m_to, dx, dy);
 	}
 
 

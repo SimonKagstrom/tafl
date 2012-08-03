@@ -12,6 +12,8 @@ enum boardData
 	B_KING   = 4
 };
 
+typedef uint8_t boardPiece_t;
+
 class Board : public IBoard
 {
 public:
@@ -22,7 +24,7 @@ public:
 			m_h = 11;
 		}
 
-		m_board = new uint8_t[m_w * m_h];
+		m_board = new boardPiece_t[m_w * m_h];
 
 		for (unsigned int i = 0; i < m_w * m_h; i++)
 		{
@@ -53,9 +55,9 @@ public:
 	Board(Board *other) :
 		m_currentTurn(other->m_currentTurn), m_h(other->m_h), m_w(other->m_w)
 	{
-		m_board = new uint8_t[m_h * m_w];
+		m_board = new boardPiece_t[m_h * m_w];
 
-		memcpy(m_board, other->m_board, sizeof(uint8_t) * m_h * m_w);
+		memcpy(m_board, other->m_board, sizeof(boardPiece_t) * m_h * m_w);
 	}
 
 	~Board()
@@ -92,7 +94,7 @@ public:
 				where.m_y < 0 || where.m_y >= m_h)
 			return false;
 
-		uint8_t piece = m_board[where.m_y * m_w + where.m_x];
+		boardPiece_t piece = m_board[where.m_y * m_w + where.m_x];
 
 		if (piece != B_BLACK &&
 				piece != B_WHITE &&
@@ -161,8 +163,8 @@ public:
 			return false;
 
 
-		uint8_t start = m_board[sy * m_w + sx];
-		uint8_t end = m_board[dx * m_w + dx];
+		boardPiece_t start = m_board[sy * m_w + sx];
+		boardPiece_t end = m_board[dx * m_w + dx];
 
 		// Not a piece
 		if (start != B_BLACK &&
@@ -188,7 +190,7 @@ public:
 
 		// Check the path from sx,sy -> dx,dy
 		while (sx != dx || sy != dy) {
-			uint8_t next;
+			boardPiece_t next;
 
 			sx = sx + dirX;
 			sy = sy + dirY;
@@ -276,7 +278,7 @@ private:
 
 
 	Color_t m_currentTurn;
-	uint8_t *m_board;
+	boardPiece_t *m_board;
 	unsigned int m_h;
 	unsigned int m_w;
 };

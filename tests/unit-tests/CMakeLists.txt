@@ -13,7 +13,6 @@ project (unit-test)
 set (TGT ut)
 
 set (${TGT}_SRCS
-	../../src/board.cc
 	../../src/utils.cc
     main.cc
     tests-board.cc

@@ -1,4 +1,5 @@
 #include <iboard.hh>
+#include <utils.hh>
 #include <string.h>
 
 using namespace tafl;
@@ -12,23 +13,39 @@ enum boardData
 	B_KING   = 4
 };
 
+enum strOffsets
+{
+	OFF_IDENT     = 0,
+	OFF_WIDTH     = 1,
+	OFF_HEIGHT    = 3,
+	OFF_TURN      = 5,
+	OFF_PLAYFIELD = 7,
+};
+
 typedef uint8_t boardPiece_t;
 
 class Board : public IBoard
 {
 public:
-	Board(std::string str) : m_currentTurn(BLACK), m_h(9), m_w(9)
+	friend class IBoard;
+
+	Board(std::string str) : m_currentTurn(BLACK)
 	{
-		if (str.size() == 11 * 11 + 1) {
-			m_w = 11;
-			m_h = 11;
-		}
+		unsigned int turn;
+
+		// We've already checked this
+		Board::getIntFromString(str, OFF_WIDTH, &m_w);
+		Board::getIntFromString(str, OFF_HEIGHT, &m_h);
+		Board::getIntFromString(str, OFF_TURN, &turn);
+
+		if (turn == 1)
+			m_currentTurn = WHITE;
 
 		m_board = new boardPiece_t[m_w * m_h];
 
 		for (unsigned int i = 0; i < m_w * m_h; i++)
 		{
-			switch(str[i + 1])
+			switch(str[i + OFF_PLAYFIELD])
 			{
 			case 'w':
 				m_board[i] = B_WHITE;
@@ -223,7 +240,7 @@ public:
 
 	std::string toString()
 	{
-		std::string out = "B";
+		std::string out = "B" + fmt("%02x%02x", m_w, m_h);
 
 		for (unsigned int i = 0; i < m_w * m_h; i++) {
 			switch (m_board[i])
@@ -277,6 +294,20 @@ private:
 	}
 
 
+	static bool getIntFromString(std::string str, unsigned int offset, unsigned int *out)
+	{
+		std::string in = str.substr(offset, 2);
+
+		char *endp;
+		const char *inc = in.c_str();
+
+		*out = strtoul(inc, &endp, 16);
+		if (endp == inc || (endp && *endp != '\0'))
+			return false;
+
+		return true;
+	}
+
 	Color_t m_currentTurn;
 	boardPiece_t *m_board;
 	unsigned int m_h;
@@ -285,18 +316,36 @@ private:
 
 IBoard *IBoard::fromString(std::string str)
 {
-	// Wrong size?
-	if (str.size() != 9 * 9 + 1 &&
-			str.size() != 11 * 11 + 1)
+	// Too small?
+	if (str.size() < 9 * 9 + OFF_PLAYFIELD)
 		return NULL;
 
-	if (str[0] != 'B')
+	if (str[OFF_IDENT] != 'B')
+		return NULL;
+
+	unsigned int w, h, turn;
+	bool res;
+	res = Board::getIntFromString(str, OFF_WIDTH, &w);
+	if (!res)
+		return NULL;
+	res = Board::getIntFromString(str, OFF_HEIGHT, &h);
+	if (!res)
+		return NULL;
+	res = Board::getIntFromString(str, OFF_TURN, &turn);
+	if (!res)
+		return NULL;
+
+	// Too short string
+	if (str.size() != w * h + OFF_PLAYFIELD)
+		return NULL;
+
+	if (turn != 0 && turn != 1)
 		return NULL;
 
 	// Count kings, check for invalid characters
 	unsigned kings = 0;
 
-	for (unsigned i = 1; i < str.size(); i++) {
+	for (unsigned i = OFF_PLAYFIELD; i < str.size(); i++) {
 		switch (str[i])
 		{
 		case 'k':

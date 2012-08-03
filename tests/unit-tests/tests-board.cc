@@ -202,6 +202,14 @@ TESTSUITE(board)
 		res = p->canMove(move);
 		ASSERT_TRUE(!res);
 
+		// Move the wrong color
+		move.m_from.m_x = 4;
+		move.m_from.m_y = 2;
+		move.m_to.m_x = 5;
+		move.m_to.m_y = 2;
+		res = p->canMove(move);
+		ASSERT_TRUE(!res);
+
 		// Crosses other piece
 		res = constructMove(start, end, move);
 		ASSERT_TRUE(res);
@@ -216,7 +224,7 @@ TESTSUITE(board)
 	{
 		const std::string start =
 				"   ...   "
-				"    .    "
+				"      .  "
 				"    o    "
 				"+   o   ."
 				"..ookoo.."
@@ -226,7 +234,7 @@ TESTSUITE(board)
 				"   ...   ";
 		const std::string end =
 				"   ...   "
-				"    .    "
+				"      .  "
 				"    o    "
 				"   +o   ."
 				"..ookoo.."
@@ -274,6 +282,12 @@ TESTSUITE(board)
 
 		possibleMoves = p->getPossibleMoves(piece);
 		ASSERT_EQ(possibleMoves.size(), 0);
+
+		res = p->getPiece(IBoard::Point(6,1), piece);
+		ASSERT_TRUE(res);
+
+		possibleMoves = p->getPossibleMoves(piece);
+		ASSERT_EQ(possibleMoves.size(), 3 + 8);
 
 		delete p;
 		delete other;

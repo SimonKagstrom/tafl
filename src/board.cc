@@ -72,6 +72,15 @@ public:
 	{
 		PieceList_t out;
 
+		for (unsigned int i = 0; i < m_w * m_h; i++) {
+			Piece piece;
+			bool res;
+
+			res = getPiece(Point(i % m_w, i / m_h), piece);
+			if (res && piece.m_color == color)
+				out.push_back(piece);
+		}
+
 		return out;
 	}
 

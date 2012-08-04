@@ -198,7 +198,7 @@ public:
 			return false;
 
 		if (m_currentTurn == WHITE &&
-				(start != B_WHITE ||
+				(start != B_WHITE &&
 				start != B_KING))
 			return false;
 

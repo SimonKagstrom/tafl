@@ -111,35 +111,46 @@ TESTSUITE(board)
 {
 	TEST(createBoard, BoardFixture)
 	{
-		IBoard *p, *other, *copy;
+		Board *p, *other, *copy;
 		std::string wrongFirst = BOARD_9X9_INIT_STRING;
 		std::string wrongChar = BOARD_9X9_INIT_STRING;
 		std::string twoKings = BOARD_9X9_INIT_STRING;
 
 		wrongFirst[OFF_IDENT] = 'f';
-		p = IBoard::fromString(wrongFirst); // Wrong first character type
+		p = (Board *)IBoard::fromString(wrongFirst); // Wrong first character type
 		ASSERT_TRUE(!p);
 
-		p = IBoard::fromString("Bbroken"); // Wrong count
+		p = (Board *)IBoard::fromString("Bbroken"); // Wrong count
 		ASSERT_TRUE(!p);
 
 		wrongChar[OFF_PLAYFIELD] = 'i'; // Not OK
-		p = IBoard::fromString(wrongChar); // Wrong character in the middle
+		p = (Board *)IBoard::fromString(wrongChar); // Wrong character in the middle
 		ASSERT_TRUE(!p);
 
 		twoKings[OFF_PLAYFIELD] = 'k'; // Not OK
-		p = IBoard::fromString(twoKings);
+		p = (Board *)IBoard::fromString(twoKings);
 		ASSERT_TRUE(!p);
 
-		p = IBoard::fromString(BOARD_9X9_INIT_STRING);
-		other = IBoard::fromString(toBoardString(initialBoard9x9));
+		p = (Board *)IBoard::fromString(BOARD_9X9_INIT_STRING);
+		other = (Board *)IBoard::fromString(toBoardString(initialBoard9x9));
 
 		ASSERT_TRUE(p);
 		ASSERT_TRUE(other);
 		ASSERT_TRUE(p->toString() == other->toString());
 
-		copy = IBoard::fromBoard(other);
+		copy = (Board *)IBoard::fromBoard(other);
 		ASSERT_TRUE(copy);
+		ASSERT_EQ(copy->m_w, other->m_w);
+		ASSERT_EQ(copy->m_h, other->m_h);
+		ASSERT_EQ(copy->m_currentTurn, other->m_currentTurn);
+		ASSERT_TRUE(copy->toString() == other->toString());
+		delete copy;
+
+		copy = (Board *)IBoard::fromString(other->toString());
+		ASSERT_TRUE(copy);
+		ASSERT_EQ(copy->m_w, other->m_w);
+		ASSERT_EQ(copy->m_h, other->m_h);
+		ASSERT_EQ(copy->m_currentTurn, other->m_currentTurn);
 		ASSERT_TRUE(copy->toString() == other->toString());
 
 		delete p;

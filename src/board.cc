@@ -269,7 +269,8 @@ public:
 		return out;
 	}
 
-private:
+// For the unit test...
+//private:
 	int dir(int v)
 	{
 		if (v == 0)

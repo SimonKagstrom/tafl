@@ -318,7 +318,7 @@ public:
 IBoard *IBoard::fromString(std::string str)
 {
 	// Too small?
-	if (str.size() < 9 * 9 + OFF_PLAYFIELD)
+	if (str.size() < 7 * 7 + OFF_PLAYFIELD)
 		return NULL;
 
 	if (str[OFF_IDENT] != 'B')

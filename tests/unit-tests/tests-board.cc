@@ -319,4 +319,131 @@ TESTSUITE(board)
 		delete p;
 		delete other;
 	}
+
+	TEST(testCaptures, BoardFixture)
+	{
+		// Custodian capture
+		const std::string custodianStart =
+				"         "
+				"         "
+				"         "
+				"    o    "
+				"    k    "
+				"    o    "
+				"  O      "
+				"o.       "
+				"         ";
+		const std::string custodianEnd =
+				"         "
+				"         "
+				"         "
+				"    o    "
+				"    k    "
+				"    o    "
+				"         "
+				"o.O      "
+				"         ";
+		const std::string immobilizationStart =
+				".        "
+				"oO       "
+				"         "
+				"    o    "
+				"    k    "
+				"    o    "
+				"  o      "
+				"o.       "
+				"         ";
+		const std::string immobilizationEnd =
+				".O       "
+				"o        "
+				"         "
+				"    o    "
+				"    k    "
+				"    o    "
+				"  o      "
+				"o.       "
+				"         ";
+		// Double custodian
+		const std::string doubleCustodianStart =
+				"  o      "
+				"  .      "
+				"   O     "
+				"  .      "
+				"  o k    "
+				"    o    "
+				"         "
+				"         "
+				"         ";
+		const std::string doubleCustodianEnd =
+				"  o      "
+				"  .      "
+				"  O      "
+				"  .      "
+				"  o k    "
+				"    o    "
+				"         "
+				"         "
+				"         ";
+
+		Board *p;
+		IBoard::Move move;
+		IBoard::PieceList_t pieces;
+		bool res;
+
+		p = (Board *)IBoard::fromString(toBoardString(custodianStart, IBoard::WHITE));
+		ASSERT_TRUE(p);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 1);
+
+
+		res = constructMove(custodianStart, custodianEnd, move);
+		ASSERT_TRUE(res);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 0);
+
+		delete p;
+
+
+		p = (Board *)IBoard::fromString(toBoardString(doubleCustodianStart, IBoard::WHITE));
+		ASSERT_TRUE(p);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 2);
+
+		res = constructMove(doubleCustodianStart, doubleCustodianEnd, move);
+		ASSERT_TRUE(res);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 0);
+
+		delete p;
+
+
+
+
+		p = (Board *)IBoard::fromString(toBoardString(immobilizationStart, IBoard::WHITE));
+		ASSERT_TRUE(p);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 2);
+
+		res = constructMove(immobilizationStart, immobilizationEnd, move);
+		ASSERT_TRUE(res);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		pieces = p->getPieces(IBoard::BLACK);
+		ASSERT_EQ(pieces.size(), 1);
+
+		delete p;
+	}
 }

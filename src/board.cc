@@ -230,7 +230,8 @@ public:
 		moveToXy(move, &sx, &sy, &dx, &dy);
 		m_board[dy * m_w + dx] = m_board[sy * m_w + sx];
 		m_board[sy * m_w + sx] = B_EMPTY;
-		// FIXME! Handle takes
+
+		checkCaptures();
 
 		m_currentTurn = m_currentTurn == BLACK ? WHITE : BLACK;
 
@@ -271,6 +272,53 @@ public:
 
 // For the unit test...
 //private:
+	void checkCaptures()
+	{
+		bool captured[m_w * m_h];
+
+		memset(captured, false, sizeof(bool) * m_w * m_h);
+
+		for (unsigned int i = 0; i < m_w * m_h; i++) {
+			unsigned int x = i % m_w;
+			unsigned int y = i / m_w;
+
+			if (m_board[i] != B_BLACK &&
+					m_board[i] != B_WHITE &&
+					m_board[i] != B_KING)
+				continue;
+
+			// Check custodian capture, i.e., flanking a piece on opposite sides
+			if (x > 0 && x < m_w - 1)
+				captured[i] |= isOppositePiece(x - 1, y, m_board[i]) &&
+						isOppositePiece(x + 1, y, m_board[i]);
+			if (y > 0 && y < m_h - 1)
+				captured[i] |= isOppositePiece(x, y - 1, m_board[i]) &&
+						isOppositePiece(x, y + 1, m_board[i]);
+		}
+
+		// Commit captures
+		for (unsigned int i = 0; i < m_w * m_h; i++) {
+			if (captured[i])
+				m_board[i] = B_EMPTY;
+		}
+	}
+
+	bool isOppositePiece(unsigned int x, unsigned int y, boardPiece_t color)
+	{
+		boardPiece_t piece = m_board[y * m_w + x];
+
+		if (color == B_KING)
+			color = B_WHITE;
+		if (piece == B_KING)
+			piece = B_WHITE;
+
+		if ((color == B_BLACK && piece != B_WHITE) ||
+				(color == B_WHITE && piece != B_BLACK))
+			return false;
+
+		return true;
+	}
+
 	int dir(int v)
 	{
 		if (v == 0)

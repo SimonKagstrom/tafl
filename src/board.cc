@@ -240,7 +240,7 @@ public:
 
 	std::string toString()
 	{
-		std::string out = "B" + fmt("%02x%02x", m_w, m_h);
+		std::string out = "B" + fmt("%02x%02x%02x", m_w, m_h, m_currentTurn);
 
 		for (unsigned int i = 0; i < m_w * m_h; i++) {
 			switch (m_board[i])
@@ -340,7 +340,7 @@ IBoard *IBoard::fromString(std::string str)
 	if (str.size() != w * h + OFF_PLAYFIELD)
 		return NULL;
 
-	if (turn != 0 && turn != 1)
+	if (turn != IBoard::WHITE && turn != IBoard::BLACK)
 		return NULL;
 
 	// Count kings, check for invalid characters

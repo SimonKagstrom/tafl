@@ -37,14 +37,14 @@ public:
 	{
 	}
 
-	std::string toBoardString(const std::string &gfx)
+	std::string toBoardString(const std::string &gfx, IBoard::Color_t color = IBoard::BLACK)
 	{
 		// Invalid
 		if (gfx.size() != 9 * 9 &&
 				gfx.size() != 11 * 11)
 			return std::string("");
 
-		std::string out = "B090900";
+		std::string out = fmt("B0909%02d", color);
 		for (unsigned int i = 0; i < gfx.size(); i++) {
 			switch (gfx[i])
 			{
@@ -270,7 +270,7 @@ TESTSUITE(board)
 		p = IBoard::fromString(toBoardString(start));
 		ASSERT_TRUE(p);
 
-		other = IBoard::fromString(toBoardString(end));
+		other = IBoard::fromString(toBoardString(end, IBoard::WHITE));
 		ASSERT_TRUE(other);
 
 		// Valid move

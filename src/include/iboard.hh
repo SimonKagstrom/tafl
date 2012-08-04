@@ -4,7 +4,7 @@
 #include <list>
 
 // To create the initial board
-#define BOARD_9X9_INIT_STRING "B090900eeebbbeeeeeeebeeeeeeeeweeeebeeeweeebbbwwkwwbbbeeeweeebeeeeweeeeeeeebeeeeeeebbbeee"
+#define BOARD_9X9_INIT_STRING "B090902eeebbbeeeeeeebeeeeeeeeweeeebeeeweeebbbwwkwwbbbeeeweeebeeeeweeeeeeeebeeeeeeebbbeee"
 
 namespace tafl
 {

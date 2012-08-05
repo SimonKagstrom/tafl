@@ -19,6 +19,12 @@ namespace tafl
 			BOTH =  3
 		} Color_t;
 
+		class IListener
+		{
+		public:
+			virtual void onGameEnd(Color_t winner) = 0;
+		};
+
 		class Point
 		{
 		public:
@@ -86,6 +92,11 @@ namespace tafl
 		virtual bool canMove(Move &move) = 0;
 
 		virtual bool doMove(Move &move) = 0;
+
+
+		virtual void registerListener(IListener &listener) = 0;
+
+		virtual void unRegisterListener(IListener &listener) = 0;
 
 
 		virtual std::string toString() = 0;

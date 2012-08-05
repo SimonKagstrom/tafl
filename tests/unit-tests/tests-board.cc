@@ -30,10 +30,10 @@ const std::string initialBoard11x11 =
 		"     .     "
 		"x  .....  x";
 
-class BoardFixture
+class BoardFixture : public IBoard::IListener
 {
 public:
-	BoardFixture()
+	BoardFixture() : m_winner(IBoard::BOTH)
 	{
 	}
 
@@ -105,6 +105,15 @@ public:
 
 		return s == true && e == true;
 	}
+
+
+	void onGameEnd(IBoard::Color_t winner)
+	{
+		m_winner = winner;
+	}
+
+
+	IBoard::Color_t m_winner;
 };
 
 TESTSUITE(board)
@@ -393,6 +402,8 @@ TESTSUITE(board)
 		p = (Board *)IBoard::fromString(toBoardString(custodianStart, IBoard::WHITE));
 		ASSERT_TRUE(p);
 
+		p->registerListener(*this);
+
 		pieces = p->getPieces(IBoard::BLACK);
 		ASSERT_EQ(pieces.size(), 1);
 
@@ -400,8 +411,11 @@ TESTSUITE(board)
 		res = constructMove(custodianStart, custodianEnd, move);
 		ASSERT_TRUE(res);
 
+		ASSERT_EQ(m_winner, IBoard::BOTH);
+
 		res = p->doMove(move);
 		ASSERT_TRUE(res);
+		ASSERT_EQ(m_winner, IBoard::WHITE);
 
 		pieces = p->getPieces(IBoard::BLACK);
 		ASSERT_EQ(pieces.size(), 0);
@@ -445,5 +459,94 @@ TESTSUITE(board)
 		ASSERT_EQ(pieces.size(), 1);
 
 		delete p;
+	}
+
+	TEST(testWins, BoardFixture)
+	{
+		const std::string whiteWinStart =
+				". o      "
+				"  .      "
+				"   o     "
+				"  .      "
+				"  o K    "
+				"    o    "
+				"         "
+				"         "
+				"         ";
+		const std::string whiteWinEnd =
+				". o      "
+				"  .      "
+				"   o     "
+				"  .      "
+				"  o     K"
+				"    o    "
+				"         "
+				"         "
+				"         ";
+
+		const std::string blackWinStart =
+				"  o      "
+				"  .      "
+				"   o     "
+				"     +   "
+				"  o.k    "
+				"    o    "
+				"         "
+				"         "
+				"         ";
+		const std::string blackWinEnd =
+				"  o      "
+				"  .      "
+				"   o     "
+				"         "
+				"  o.k+   "
+				"    o    "
+				"         "
+				"         "
+				"         ";
+
+
+		Board *p;
+		IBoard::Move move;
+		bool res;
+
+		p = (Board *)IBoard::fromString(toBoardString(whiteWinStart, IBoard::WHITE));
+		ASSERT_TRUE(p);
+
+		p->registerListener(*this);
+
+		res = constructMove(whiteWinStart, whiteWinEnd, move);
+		ASSERT_TRUE(res);
+
+		ASSERT_EQ(m_winner, IBoard::BOTH);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		// Not whites turn
+		ASSERT_EQ(m_winner, IBoard::BOTH);
+
+		// Stupid move by black
+		IBoard::Move bm(IBoard::Point(0,0), IBoard::Point(0, 1));
+		res = p->doMove(bm);
+		ASSERT_TRUE(res);
+
+		ASSERT_EQ(m_winner, IBoard::WHITE);
+
+		delete p;
+		m_winner = IBoard::BOTH;
+
+		p = (Board *)IBoard::fromString(toBoardString(blackWinStart, IBoard::BLACK));
+		ASSERT_TRUE(p);
+
+		res = constructMove(blackWinStart, blackWinEnd, move);
+		ASSERT_TRUE(res);
+
+		ASSERT_EQ(m_winner, IBoard::BOTH);
+
+		res = p->doMove(move);
+		ASSERT_TRUE(res);
+
+		ASSERT_EQ(m_winner, IBoard::BLACK);
 	}
 }

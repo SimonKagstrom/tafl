@@ -255,13 +255,28 @@ public:
 		m_board[dy * m_w + dx] = m_board[sy * m_w + sx];
 		m_board[sy * m_w + sx] = B_EMPTY;
 
-		checkCaptures();
-
 		m_currentTurn = m_currentTurn == BLACK ? WHITE : BLACK;
+
+		checkCaptures();
 
 		return true;
 	}
 
+
+	void registerListener(IListener &listener)
+	{
+		m_listeners.push_back(&listener);
+	}
+
+	void unRegisterListener(IListener &listener)
+	{
+		for (ListenerList_t::iterator it = m_listeners.begin();
+				it != m_listeners.end();
+				it++) {
+			if (*it == &listener)
+				m_listeners.erase(it);
+		}
+	}
 
 	std::string toString()
 	{
@@ -344,10 +359,51 @@ public:
 				captured[i] = true;
 		}
 
-		// Commit captures
+		// Commit captures, count pieces
+		Color_t winner = BOTH; // Well, none of them
+		bool kingAlive = false;
+		unsigned int nBlack = 0;
+
 		for (unsigned int i = 0; i < m_w * m_h; i++) {
+			unsigned int x = i % m_w;
+			unsigned int y = i / m_w;
+
 			if (captured[i])
 				m_board[i] = B_EMPTY;
+
+			if (m_board[i] == B_BLACK)
+				nBlack++;
+
+			if (m_board[i] == B_KING) {
+				boardPiece_t adjacent[N_DIRS];
+
+				kingAlive = true;
+				if (m_currentTurn != IBoard::WHITE)
+					continue;
+
+				getAdjacent(x, y, adjacent);
+				if ((x == 0 || x == m_w - 1) &&
+						((adjacent[DIR_UP] == B_EMPTY) ||
+						(adjacent[DIR_DOWN] == B_EMPTY)))
+					winner = WHITE;
+				if ((y == 0 || y == m_h - 1) &&
+						((adjacent[DIR_LEFT] == B_EMPTY) ||
+						(adjacent[DIR_RIGHT] == B_EMPTY)))
+					winner = WHITE;
+			}
+		}
+
+		if (!kingAlive)
+			winner = BLACK;
+		if (nBlack == 0)
+			winner = WHITE;
+
+		// We have a winner!
+		if (winner != BOTH) {
+			for (ListenerList_t::iterator it = m_listeners.begin();
+					it != m_listeners.end();
+					it++)
+				(*it)->onGameEnd(winner);
 		}
 	}
 
@@ -418,10 +474,14 @@ public:
 		return true;
 	}
 
+	typedef std::list<IListener *> ListenerList_t;
+
 	Color_t m_currentTurn;
 	boardPiece_t *m_board;
 	unsigned int m_h;
 	unsigned int m_w;
+
+	ListenerList_t m_listeners;
 };
 
 IBoard *IBoard::fromString(std::string str)

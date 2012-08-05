@@ -6,11 +6,11 @@ using namespace tafl;
 
 enum boardData
 {
-	B_EMPTY  = 0,
-	B_CORNER = 1,
-	B_BLACK  = 2,
-	B_WHITE  = 3,
-	B_KING   = 4
+	B_EMPTY  = 'e',
+	B_CORNER = 'c',
+	B_BLACK  = 'b',
+	B_WHITE  = 'w',
+	B_KING   = 'k'
 };
 
 enum strOffsets

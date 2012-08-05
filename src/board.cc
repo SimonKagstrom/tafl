@@ -181,7 +181,7 @@ public:
 
 
 		boardPiece_t start = m_board[sy * m_w + sx];
-		boardPiece_t end = m_board[dx * m_w + dx];
+		boardPiece_t end = m_board[dy * m_w + dx];
 
 		// Not a piece
 		if (start != B_BLACK &&

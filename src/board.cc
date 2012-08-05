@@ -1,3 +1,17 @@
+/*
+ * Implementation of the Tafl board - movement, captures etc.
+ *
+ * The rules are taken from Joanna Zoryas article,
+ *
+ *   http://www.martialtaichi.co.uk/articles/Tafl_Rules.pdf
+ *
+ * With the following exception:
+ *
+ *   "if a pair or a group become surrounded, one of the pieces
+ *    may be removed each turn"
+ *
+ * is not implemented.
+ */
 #include <iboard.hh>
 #include <utils.hh>
 #include <string.h>

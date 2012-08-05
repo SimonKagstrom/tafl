@@ -319,10 +319,10 @@ public:
 
 			// Check immobilization capture
 			bool immobilized = true;
-			for (unsigned int i = 0; i < N_DIRS; i++) {
-				if (adjacent[i] == piece)
+			for (unsigned int dir = 0; dir < N_DIRS; dir++) {
+				if (adjacent[dir] == piece)
 					immobilized = false;
-				else if (adjacent[i] == B_EMPTY)
+				else if (adjacent[dir] == B_EMPTY)
 					immobilized = false;
 			}
 

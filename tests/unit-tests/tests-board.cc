@@ -538,6 +538,7 @@ TESTSUITE(board)
 
 		p = (Board *)IBoard::fromString(toBoardString(blackWinStart, IBoard::BLACK));
 		ASSERT_TRUE(p);
+		p->registerListener(*this);
 
 		res = constructMove(blackWinStart, blackWinEnd, move);
 		ASSERT_TRUE(res);

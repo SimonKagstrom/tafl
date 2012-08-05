@@ -22,6 +22,16 @@ enum strOffsets
 	OFF_PLAYFIELD = 7,
 };
 
+enum directions
+{
+	DIR_LEFT  = 0,
+	DIR_RIGHT = 1,
+	DIR_UP    = 2,
+	DIR_DOWN  = 3,
+
+	N_DIRS
+};
+
 typedef uint8_t boardPiece_t;
 
 class Board : public IBoard
@@ -279,21 +289,45 @@ public:
 		memset(captured, false, sizeof(bool) * m_w * m_h);
 
 		for (unsigned int i = 0; i < m_w * m_h; i++) {
+			boardPiece_t adjacent[N_DIRS];
+			boardPiece_t piece = m_board[i];
+			boardPiece_t opponentColor;
 			unsigned int x = i % m_w;
 			unsigned int y = i / m_w;
 
-			if (m_board[i] != B_BLACK &&
-					m_board[i] != B_WHITE &&
-					m_board[i] != B_KING)
+			if (piece != B_BLACK &&
+					piece != B_WHITE &&
+					piece != B_KING)
 				continue;
 
+			if (piece == B_BLACK) {
+				opponentColor = B_WHITE;
+			} else {
+				opponentColor = B_BLACK;
+				piece = B_WHITE;
+			}
+
+			getAdjacent(x, y, adjacent);
+
 			// Check custodian capture, i.e., flanking a piece on opposite sides
-			if (x > 0 && x < m_w - 1)
-				captured[i] |= isOppositePiece(x - 1, y, m_board[i]) &&
-						isOppositePiece(x + 1, y, m_board[i]);
-			if (y > 0 && y < m_h - 1)
-				captured[i] |= isOppositePiece(x, y - 1, m_board[i]) &&
-						isOppositePiece(x, y + 1, m_board[i]);
+			if (adjacent[DIR_LEFT] == opponentColor &&
+					adjacent[DIR_RIGHT] == opponentColor)
+				captured[i] = true;
+			if (adjacent[DIR_UP] == opponentColor &&
+					adjacent[DIR_DOWN] == opponentColor)
+				captured[i] = true;
+
+			// Check immobilization capture
+			bool immobilized = true;
+			for (unsigned int i = 0; i < N_DIRS; i++) {
+				if (adjacent[i] == piece)
+					immobilized = false;
+				else if (adjacent[i] == B_EMPTY)
+					immobilized = false;
+			}
+
+			if (immobilized)
+				captured[i] = true;
 		}
 
 		// Commit captures
@@ -303,20 +337,33 @@ public:
 		}
 	}
 
-	bool isOppositePiece(unsigned int x, unsigned int y, boardPiece_t color)
+	void getAdjacent(unsigned int x, unsigned int y, boardPiece_t *out)
 	{
-		boardPiece_t piece = m_board[y * m_w + x];
+		if (x < 1)
+			out[DIR_LEFT] = B_CORNER;
+		else
+			out[DIR_LEFT] = m_board[y * m_w + (x - 1)];
 
-		if (color == B_KING)
-			color = B_WHITE;
-		if (piece == B_KING)
-			piece = B_WHITE;
+		if (x > m_w - 1)
+			out[DIR_RIGHT] = B_CORNER;
+		else
+			out[DIR_RIGHT] = m_board[y * m_w + (x + 1)];
 
-		if ((color == B_BLACK && piece != B_WHITE) ||
-				(color == B_WHITE && piece != B_BLACK))
-			return false;
 
-		return true;
+		if (y < 1)
+			out[DIR_UP] = B_CORNER;
+		else
+			out[DIR_UP] = m_board[(y - 1) * m_w + x];
+
+		if (x > m_w - 1)
+			out[DIR_DOWN] = B_CORNER;
+		else
+			out[DIR_DOWN] = m_board[(y + 1) * m_w + x];
+
+		for (unsigned int i = 0; i < N_DIRS; i++) {
+			if (out[i] == B_KING)
+				out[i] = B_WHITE;
+		}
 	}
 
 	int dir(int v)

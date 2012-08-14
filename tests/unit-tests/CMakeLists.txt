@@ -15,6 +15,7 @@ set (TGT ut)
 set (${TGT}_SRCS
 	../../src/utils.cc
     main.cc
+    tests-ai.cc
     tests-board.cc
     )
 set (CMAKE_BUILD_TYPE debug)

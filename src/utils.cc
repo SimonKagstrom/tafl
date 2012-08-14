@@ -1,6 +1,7 @@
 #include <utils.hh>
 
 #include <stdarg.h>
+#include <thread>
 
 std::string fmt(const char *fmt, ...)
 {
@@ -18,3 +19,12 @@ std::string fmt(const char *fmt, ...)
 	return std::string(buf);
 }
 
+unsigned int get_number_of_cores(void)
+{
+	unsigned int out = std::thread::hardware_concurrency();
+
+	if (out == 0)
+		out = 1;
+
+	return out;
+}

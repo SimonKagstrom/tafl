@@ -7,6 +7,7 @@ enum configuration
 {
 	PIECE,
 	PIECE_CAN_REACH,
+	VICTORY,
 	N_ENTRIES,
 };
 
@@ -18,6 +19,7 @@ public:
 		// Guesses
 		m_configuration[PIECE] = 10;
 		m_configuration[PIECE_CAN_REACH] = 5;
+		m_configuration[VICTORY] = 100000;
 	}
 
 	double evaluate(IBoard &board)

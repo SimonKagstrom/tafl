@@ -97,6 +97,13 @@ namespace tafl
 		virtual bool doMove(Move &move) = 0;
 
 
+		/**
+		 * Get the winner
+		 *
+		 * @return BOTH if there is no winner, the color otherwise
+		 */
+		virtual Color_t getWinner() = 0;
+
 		virtual void registerListener(IListener &listener) = 0;
 
 		virtual void unRegisterListener(IListener &listener) = 0;

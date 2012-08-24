@@ -52,7 +52,7 @@ class Board : public IBoard
 public:
 	friend class IBoard;
 
-	Board(std::string str) : m_currentTurn(BLACK)
+	Board(std::string str) : m_currentTurn(BLACK), m_winner(BOTH)
 	{
 		unsigned int turn;
 
@@ -93,7 +93,7 @@ public:
 	}
 
 	Board(Board *other) :
-		m_currentTurn(other->m_currentTurn), m_h(other->m_h), m_w(other->m_w)
+		m_currentTurn(other->m_currentTurn), m_winner(BOTH), m_h(other->m_h), m_w(other->m_w)
 	{
 		m_board = new boardPiece_t[m_h * m_w];
 
@@ -108,6 +108,11 @@ public:
 	Color_t getTurn()
 	{
 		return m_currentTurn;
+	}
+
+	Color_t getWinner()
+	{
+		return m_winner;
 	}
 
 	unsigned getDimensions()
@@ -405,6 +410,8 @@ public:
 
 		// We have a winner!
 		if (winner != BOTH) {
+			m_winner = winner;
+
 			for (ListenerList_t::iterator it = m_listeners.begin();
 					it != m_listeners.end();
 					it++)
@@ -469,6 +476,7 @@ public:
 	typedef std::list<IListener *> ListenerList_t;
 
 	Color_t m_currentTurn;
+	Color_t m_winner;
 	boardPiece_t *m_board;
 	unsigned int m_h;
 	unsigned int m_w;

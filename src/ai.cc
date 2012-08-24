@@ -14,7 +14,7 @@ enum configuration
 class Ai : public IAi
 {
 public:
-	Ai()
+	Ai() : m_maxDepth(2)
 	{
 		// Guesses
 		m_configuration[PIECE] = 10;
@@ -22,16 +22,22 @@ public:
 		m_configuration[VICTORY] = 100000;
 	}
 
+	int getColorSign(IBoard::Color_t color)
+	{
+		int sign = 0;
+
+		if (color == IBoard::WHITE)
+			sign = -1;
+		else if (color == IBoard::BLACK)
+			sign = 1;
+
+		return sign;
+	}
+
 	double evaluate(IBoard &board)
 	{
-		if (board.getWinner() != IBoard::BOTH) {
-			int sign = 1;
-
-			if (board.getWinner() == IBoard::WHITE)
-				sign = -1;
-
-			return m_configuration[VICTORY] * sign;
-		}
+		if (board.getWinner() != IBoard::BOTH)
+			return m_configuration[VICTORY] * getColorSign(board.getWinner());
 
 		IBoard::PieceList_t pieces = board.getPieces(IBoard::Color_t::BOTH);
 		unsigned dimensions = board.getDimensions();
@@ -81,9 +87,82 @@ public:
 		return out;
 	}
 
+	double minimax(IBoard &board, unsigned depth)
+	{
+		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
+			return evaluate(board);
+
+		IBoard::Color_t turn = board.getTurn();
+		IBoard::PieceList_t pieces = board.getPieces(turn);
+		double out = INFINITY * getColorSign(turn);
+
+		for (IBoard::PieceList_t::iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+
+			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
+					moveIt != moves.end();
+					moveIt++) {
+				IBoard::Move move = *moveIt;
+				double cur;
+				IBoard *p;
+				bool res;
+
+				p = IBoard::fromBoard(&board);
+				res = p->doMove(move);
+				panic_if(!res,
+						"Can't make possible move!");
+
+				cur = minimax(*p, depth + 1);
+				if (abs(cur) > abs(out))
+					out = cur;
+
+				delete p;
+			}
+		}
+
+		return out;
+	}
+
 	IBoard::Move getBestMove(IBoard &board)
 	{
-		return IBoard::Move();
+		IBoard::Move out;
+		IBoard::Color_t turn = board.getTurn();
+		IBoard::PieceList_t pieces = board.getPieces(turn);
+		double best = INFINITY * getColorSign(turn);
+
+		for (IBoard::PieceList_t::iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+
+			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
+					moveIt != moves.end();
+					moveIt++) {
+				IBoard::Move move = *moveIt;
+				double cur;
+				IBoard *p;
+				bool res;
+
+				p = IBoard::fromBoard(&board);
+				res = p->doMove(move);
+				panic_if(!res,
+						"Can't make possible move!");
+
+				cur = minimax(*p, 0);
+				if (abs(cur) > abs(best)) {
+					out = move;
+					best = cur;
+				}
+
+				delete p;
+			}
+		}
+
+		return out;
 	}
 
 	std::string toString()
@@ -94,7 +173,7 @@ public:
 
 // private:
 	double m_configuration[N_ENTRIES];
-
+	unsigned m_maxDepth;
 };
 
 IAi *IAi::createAi()

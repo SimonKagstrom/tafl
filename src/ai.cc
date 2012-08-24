@@ -24,6 +24,15 @@ public:
 
 	double evaluate(IBoard &board)
 	{
+		if (board.getWinner() != IBoard::BOTH) {
+			int sign = 1;
+
+			if (board.getWinner() == IBoard::WHITE)
+				sign = -1;
+
+			return m_configuration[VICTORY] * sign;
+		}
+
 		IBoard::PieceList_t pieces = board.getPieces(IBoard::Color_t::BOTH);
 		unsigned dimensions = board.getDimensions();
 

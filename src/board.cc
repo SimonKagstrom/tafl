@@ -111,6 +111,12 @@ public:
 		return m_currentTurn;
 	}
 
+	int getDimensions()
+	{
+		return m_w;
+	}
+
+
 	PieceList_t getPieces(Color_t color)
 	{
 		PieceList_t out;

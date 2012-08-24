@@ -111,7 +111,7 @@ public:
 		return m_currentTurn;
 	}
 
-	int getDimensions()
+	unsigned getDimensions()
 	{
 		return m_w;
 	}

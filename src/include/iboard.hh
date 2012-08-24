@@ -81,7 +81,7 @@ namespace tafl
 
 		virtual Color_t getTurn() = 0;
 
-		virtual int getDimensions() = 0;
+		virtual unsigned getDimensions() = 0;
 
 
 		virtual PieceList_t getPieces(Color_t color) = 0;

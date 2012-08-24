@@ -1,6 +1,7 @@
 #include <utils.hh>
 
 #include <stdarg.h>
+#include <string.h>
 #include <thread>
 
 std::string fmt(const char *fmt, ...)
@@ -27,4 +28,18 @@ unsigned int get_number_of_cores(void)
 		out = 1;
 
 	return out;
+}
+
+bool getIntFromString(std::string str, unsigned int offset, unsigned int *out)
+{
+	std::string in = str.substr(offset, 2);
+
+	char *endp;
+	const char *inc = in.c_str();
+
+	*out = strtoul(inc, &endp, 16);
+	if (endp == inc || (endp && *endp != '\0'))
+		return false;
+
+	return true;
 }

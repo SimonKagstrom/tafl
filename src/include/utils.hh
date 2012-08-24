@@ -16,3 +16,5 @@
 std::string fmt(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 unsigned int get_number_of_cores(void);
+
+bool getIntFromString(std::string str, unsigned int offset, unsigned int *out);

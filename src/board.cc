@@ -14,7 +14,6 @@
  */
 #include <iboard.hh>
 #include <utils.hh>
-#include <string.h>
 
 using namespace tafl;
 
@@ -58,9 +57,9 @@ public:
 		unsigned int turn;
 
 		// We've already checked this
-		Board::getIntFromString(str, OFF_WIDTH, &m_w);
-		Board::getIntFromString(str, OFF_HEIGHT, &m_h);
-		Board::getIntFromString(str, OFF_TURN, &turn);
+		getIntFromString(str, OFF_WIDTH, &m_w);
+		getIntFromString(str, OFF_HEIGHT, &m_h);
+		getIntFromString(str, OFF_TURN, &turn);
 
 		if (turn == 1)
 			m_currentTurn = WHITE;
@@ -466,19 +465,6 @@ public:
 	}
 
 
-	static bool getIntFromString(std::string str, unsigned int offset, unsigned int *out)
-	{
-		std::string in = str.substr(offset, 2);
-
-		char *endp;
-		const char *inc = in.c_str();
-
-		*out = strtoul(inc, &endp, 16);
-		if (endp == inc || (endp && *endp != '\0'))
-			return false;
-
-		return true;
-	}
 
 	typedef std::list<IListener *> ListenerList_t;
 
@@ -501,13 +487,13 @@ IBoard *IBoard::fromString(std::string str)
 
 	unsigned int w, h, turn;
 	bool res;
-	res = Board::getIntFromString(str, OFF_WIDTH, &w);
+	res = getIntFromString(str, OFF_WIDTH, &w);
 	if (!res)
 		return NULL;
-	res = Board::getIntFromString(str, OFF_HEIGHT, &h);
+	res = getIntFromString(str, OFF_HEIGHT, &h);
 	if (!res)
 		return NULL;
-	res = Board::getIntFromString(str, OFF_TURN, &turn);
+	res = getIntFromString(str, OFF_TURN, &turn);
 	if (!res)
 		return NULL;
 

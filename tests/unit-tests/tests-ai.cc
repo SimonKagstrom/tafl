@@ -127,4 +127,49 @@ TESTSUITE(ai)
 
 		delete ai;
 	}
+
+	TEST(runAi, BoardFixture, DEADLINE_REALTIME_MS(60000))
+	{
+		const std::string boardStr =
+				"         "
+				"         "
+				"         "
+				"o        "
+				"..  k    "
+				".   o    "
+				".o       "
+				".        "
+				".        ";
+
+
+		IBoard *board = IBoard::fromString(toBoardString(boardStr, IBoard::WHITE));
+		IAi *ai;
+		bool res;
+
+		ASSERT_TRUE(board);
+		ASSERT_EQ(board->getWinner(), IBoard::BOTH);
+		ASSERT_EQ(board->getTurn(), IBoard::WHITE);
+		ai = IAi::createAi();
+
+		// Should move the king
+		IBoard::Move move = ai->getBestMove(*board);
+
+
+		res = board->doMove(move);
+		ASSERT_TRUE(res);
+
+		// Black move (does not matter now)
+		move = ai->getBestMove(*board);
+		res = board->doMove(move);
+		ASSERT_TRUE(res);
+
+		// White move, should be a win
+		move = ai->getBestMove(*board);
+		res = board->doMove(move);
+		ASSERT_TRUE(res);
+		ASSERT_EQ(board->getWinner(), IBoard::WHITE);
+
+
+		delete ai;
+	}
 }

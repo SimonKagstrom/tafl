@@ -435,12 +435,14 @@ TESTSUITE(board)
 		ASSERT_TRUE(res);
 
 		ASSERT_EQ(m_winner, IBoard::BOTH);
+		ASSERT_EQ(m_winner, p->m_winner);
 
 		res = p->doMove(move);
 		ASSERT_TRUE(res);
 
 		// Not whites turn
 		ASSERT_EQ(m_winner, IBoard::BOTH);
+		ASSERT_EQ(m_winner, p->m_winner);
 
 		// Stupid move by black
 		IBoard::Move bm(IBoard::Point(0,0), IBoard::Point(0, 1));
@@ -448,6 +450,7 @@ TESTSUITE(board)
 		ASSERT_TRUE(res);
 
 		ASSERT_EQ(m_winner, IBoard::WHITE);
+		ASSERT_EQ(m_winner, p->m_winner);
 
 		delete p;
 		m_winner = IBoard::BOTH;
@@ -460,10 +463,12 @@ TESTSUITE(board)
 		ASSERT_TRUE(res);
 
 		ASSERT_EQ(m_winner, IBoard::BOTH);
+		ASSERT_EQ(m_winner, p->m_winner);
 
 		res = p->doMove(move);
 		ASSERT_TRUE(res);
 
 		ASSERT_EQ(m_winner, IBoard::BLACK);
+		ASSERT_EQ(m_winner, p->m_winner);
 	}
 }

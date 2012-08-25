@@ -41,7 +41,7 @@ public:
 		if (board.getWinner() != IBoard::BOTH)
 			return m_configuration[VICTORY] * getColorSign(board.getWinner());
 
-		IBoard::PieceList_t pieces = board.getPieces(IBoard::Color_t::BOTH);
+		const IBoard::PieceList_t pieces = board.getPieces(IBoard::Color_t::BOTH);
 		unsigned dimensions = board.getDimensions();
 
 		double scoreBlack[dimensions * dimensions];
@@ -55,7 +55,7 @@ public:
 			score[i] = 0.0;
 		}
 
-		for (IBoard::PieceList_t::iterator it = pieces.begin();
+		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
 				it != pieces.end();
 				it++) {
 			IBoard::Piece piece = *it;
@@ -95,10 +95,10 @@ public:
 			return evaluate(board);
 
 		IBoard::Color_t turn = board.getTurn();
-		IBoard::PieceList_t pieces = board.getPieces(turn);
+		const IBoard::PieceList_t pieces = board.getPieces(turn);
 		double out = INFINITY * getColorSign(turn);
 
-		for (IBoard::PieceList_t::iterator it = pieces.begin();
+		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
 				it != pieces.end();
 				it++) {
 			IBoard::Piece piece = *it;

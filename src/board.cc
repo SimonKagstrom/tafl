@@ -123,7 +123,7 @@ public:
 	}
 
 
-	PieceList_t getPieces(Color_t color)
+	const PieceList_t getPieces(Color_t color)
 	{
 		PieceList_t out;
 

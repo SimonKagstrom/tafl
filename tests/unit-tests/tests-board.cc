@@ -189,7 +189,6 @@ TESTSUITE(board)
 		IBoard::Move move;
 		IBoard::Piece piece;
 		IBoard::MoveList_t possibleMoves;
-		IBoard::PieceList_t pieces;
 		bool res;
 
 		p = IBoard::fromString(toBoardString(start));
@@ -234,12 +233,9 @@ TESTSUITE(board)
 
 
 		// Check that getPices work
-		pieces = p->getPieces(IBoard::WHITE);
-		ASSERT_EQ(pieces.size(), 7);
-		pieces = p->getPieces(IBoard::BLACK);
-		ASSERT_EQ(pieces.size(), 16);
-		pieces = p->getPieces(IBoard::BOTH);
-		ASSERT_EQ(pieces.size(), 7 + 16);
+		ASSERT_EQ(p->getPieces(IBoard::WHITE).size(), 7);
+		ASSERT_EQ(p->getPieces(IBoard::BLACK).size(), 16);
+		ASSERT_EQ(p->getPieces(IBoard::BOTH).size(), 7 + 16);
 
 		delete p;
 		delete other;

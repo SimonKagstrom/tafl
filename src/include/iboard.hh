@@ -84,7 +84,7 @@ namespace tafl
 		virtual unsigned getDimensions() = 0;
 
 
-		virtual PieceList_t getPieces(Color_t color) = 0;
+		virtual const PieceList_t getPieces(Color_t color) = 0;
 
 		virtual bool getPiece(Point where, Piece &out) = 0;
 

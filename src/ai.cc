@@ -1,6 +1,8 @@
 #include <iai.hh>
 #include <utils.hh>
 
+#include <math.h>
+
 using namespace tafl;
 
 enum configuration

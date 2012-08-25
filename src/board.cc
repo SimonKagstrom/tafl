@@ -15,6 +15,8 @@
 #include <iboard.hh>
 #include <utils.hh>
 
+#include <string.h>
+
 using namespace tafl;
 
 enum boardData

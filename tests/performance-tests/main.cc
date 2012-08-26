@@ -1,7 +1,45 @@
 #include <iai.hh>
 #include <utils.hh>
 
+#include <string.h>
+
 using namespace tafl;
+
+static void display(IBoard &board)
+{
+	unsigned size = board.getDimensions() * board.getDimensions();
+	char field[size];
+
+	memset(field, ' ', size);
+
+	const IBoard::PieceList_t pieces = board.getPieces(IBoard::BOTH);
+
+	for (IBoard::PieceList_t::const_iterator it = pieces.begin();
+			it != pieces.end();
+			it++) {
+		IBoard::Piece piece = *it;
+		char chr = '.';
+
+		if (piece.m_color != IBoard::BLACK) {
+			if (piece.m_isKing)
+				chr = 'k';
+			else
+				chr = 'o';
+		}
+
+		field[piece.m_location.m_y * board.getDimensions() + piece.m_location.m_x] = chr;
+	}
+
+	printf("###########\n");
+	for (unsigned y = 0; y < board.getDimensions(); y++) {
+		printf("#");
+		for (unsigned x = 0; x < board.getDimensions(); x++) {
+			printf("%c", field[y * board.getDimensions() + x]);
+		}
+		printf("#\n");
+	}
+	printf("###########\n");
+}
 
 int main(int argc, const char *argv[])
 {
@@ -14,6 +52,7 @@ int main(int argc, const char *argv[])
 			"Can't create AI");
 
 	for (unsigned i = 0; i < 10; i++) {
+		display(*board);
 		printf("Move %d: ", i + 1);
 		fflush(stdout);
 		IBoard::Move move = ai->getBestMove(*board);
@@ -30,6 +69,7 @@ int main(int argc, const char *argv[])
 		if (board->getWinner() != IBoard::BOTH)
 			break;
 	}
+	display(*board);
 
 	delete ai;
 	delete board;

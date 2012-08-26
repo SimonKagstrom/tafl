@@ -61,12 +61,13 @@ namespace tafl
 		class Piece
 		{
 		public:
-			Piece() : m_color(BLACK), m_location(Point(0,0))
+			Piece() : m_color(BLACK), m_location(Point(0,0)), m_isKing(false)
 			{
 			}
 
 			Color_t m_color;
 			Point m_location;
+			bool m_isKing;
 		};
 
 		typedef std::list<Piece> PieceList_t;

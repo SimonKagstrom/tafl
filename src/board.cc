@@ -156,6 +156,7 @@ public:
 
 		out.m_color = piece == B_BLACK ? BLACK : WHITE;
 		out.m_location = where;
+		out.m_isKing = piece == B_KING;
 
 		return true;
 	}

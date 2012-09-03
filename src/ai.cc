@@ -36,7 +36,7 @@ public:
 		return sign;
 	}
 
-	double evaluate(IBoard &board)
+	virtual double evaluate(IBoard &board)
 	{
 		if (board.getWinner() != IBoard::BOTH)
 			return m_configuration[VICTORY] * getColorSign(board.getWinner());

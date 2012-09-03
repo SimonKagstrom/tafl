@@ -112,7 +112,7 @@ public:
 				IBoard *p;
 				bool res;
 
-				p = IBoard::fromBoard(&board);
+				p = board.copy();
 				res = p->doMove(move);
 				panic_if(!res,
 						"Can't make possible move!");
@@ -133,7 +133,7 @@ public:
 
 	IBoard::Move getBestMove(IBoard &board)
 	{
-		IBoard *p = IBoard::fromBoard(&board);
+		IBoard *p = board.copy();
 		IBoard::Move out;
 
 		minimax(*p, &out, 0);

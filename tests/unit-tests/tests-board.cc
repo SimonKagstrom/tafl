@@ -63,7 +63,7 @@ TESTSUITE(board)
 		ASSERT_TRUE(other);
 		ASSERT_TRUE(p->toString() == other->toString());
 
-		copy = (Board *)IBoard::fromBoard(other);
+		copy = (Board *)other->copy();
 		ASSERT_TRUE(copy);
 		ASSERT_EQ(copy->m_w, other->m_w);
 		ASSERT_EQ(copy->m_h, other->m_h);

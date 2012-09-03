@@ -322,6 +322,11 @@ public:
 		return out;
 	}
 
+	IBoard *copy()
+	{
+		return new Board(this);
+	}
+
 // For the unit test...
 //private:
 	void checkCaptures()
@@ -475,7 +480,6 @@ public:
 	}
 
 
-
 	typedef std::list<IListener *> ListenerList_t;
 
 	Color_t m_currentTurn;
@@ -541,9 +545,4 @@ IBoard *IBoard::fromString(std::string str)
 		return NULL;
 
 	return new Board(str);
-}
-
-IBoard *IBoard::fromBoard(IBoard *other)
-{
-	return new Board((Board *)other);
 }

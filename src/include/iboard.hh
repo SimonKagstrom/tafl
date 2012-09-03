@@ -112,9 +112,9 @@ namespace tafl
 
 		virtual std::string toString() = 0;
 
+		virtual IBoard *copy() = 0;
+
 
 		static IBoard *fromString(std::string str);
-
-		static IBoard *fromBoard(IBoard *other);
 	};
 }

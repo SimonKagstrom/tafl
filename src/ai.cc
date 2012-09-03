@@ -16,7 +16,7 @@ enum configuration
 class Ai : public IAi
 {
 public:
-	Ai() : m_maxDepth(2)
+	Ai() : m_maxDepth(3)
 	{
 		// Guesses
 		m_configuration[PIECE] = 10;
@@ -89,7 +89,7 @@ public:
 		return out;
 	}
 
-	double minimax(IBoard &board, unsigned depth)
+	double minimax(IBoard &board, IBoard::Move *bestMove, unsigned depth)
 	{
 		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
 			return evaluate(board);
@@ -117,9 +117,12 @@ public:
 				panic_if(!res,
 						"Can't make possible move!");
 
-				cur = minimax(*p, depth + 1);
-				if (abs(cur) > abs(out))
+				IBoard::Move nextMove;
+				cur = minimax(*p, &nextMove, depth + 1);
+				if (abs(cur) > abs(out)) {
 					out = cur;
+					*bestMove = move;
+				}
 
 				delete p;
 			}
@@ -130,39 +133,12 @@ public:
 
 	IBoard::Move getBestMove(IBoard &board)
 	{
+		IBoard *p = IBoard::fromBoard(&board);
 		IBoard::Move out;
-		IBoard::Color_t turn = board.getTurn();
-		IBoard::PieceList_t pieces = board.getPieces(turn);
-		double best = INFINITY * getColorSign(turn);
 
-		for (IBoard::PieceList_t::iterator it = pieces.begin();
-				it != pieces.end();
-				it++) {
-			IBoard::Piece piece = *it;
-			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+		minimax(*p, &out, 0);
 
-			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
-					moveIt != moves.end();
-					moveIt++) {
-				IBoard::Move move = *moveIt;
-				double cur;
-				IBoard *p;
-				bool res;
-
-				p = IBoard::fromBoard(&board);
-				res = p->doMove(move);
-				panic_if(!res,
-						"Can't make possible move!");
-
-				cur = minimax(*p, 0);
-				if (abs(cur) > abs(best)) {
-					out = move;
-					best = cur;
-				}
-
-				delete p;
-			}
-		}
+		delete p;
 
 		return out;
 	}

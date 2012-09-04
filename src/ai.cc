@@ -25,6 +25,8 @@ public:
 		m_configuration[PIECE] = 10;
 		m_configuration[PIECE_CAN_REACH] = 5;
 		m_configuration[VICTORY] = 100000;
+
+		m_useAlphaBeta = true;
 	}
 
 	int getColorSign(IBoard::Color_t color)
@@ -142,12 +144,74 @@ public:
 		return out;
 	}
 
+	double alphaBeta(IBoard &board, IBoard::Move *bestMove, unsigned depth, double alpha, double beta)
+	{
+		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
+			return evaluate(board);
+
+		IBoard::Color_t turn = board.getTurn();
+		const IBoard::PieceList_t pieces = board.getPieces(turn);
+
+		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+			double cur;
+
+			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
+					moveIt != moves.end();
+					moveIt++) {
+				IBoard::Move move = *moveIt;
+				IBoard *p;
+				bool res;
+
+				p = board.copy();
+				res = p->doMove(move);
+				panic_if(!res,
+						"Can't make possible move!");
+
+				IBoard::Move nextBest;
+				cur = alphaBeta(*p, &nextBest, depth + 1, alpha, beta);
+
+				delete p;
+
+				if (turn == IBoard::BLACK) {
+					if (cur > alpha) {
+						*bestMove = move;
+						alpha = cur;
+					}
+					if (alpha >= beta)
+						goto out;
+				}
+				else {
+					if (cur < beta) {
+						*bestMove = move;
+						beta = cur;
+					}
+					// Cut off white
+					if (alpha >= beta)
+						goto out;
+				}
+			}
+		}
+
+out:
+		if (turn == IBoard::BLACK)
+			return alpha;
+
+		return beta;
+	}
+
 	IBoard::Move getBestMove(IBoard &board)
 	{
 		IBoard *p = board.copy();
 		IBoard::Move out;
 
-		minimax(*p, &out, 0);
+		if (m_useAlphaBeta)
+			alphaBeta(*p, &out, 0, -INFINITY, INFINITY);
+		else
+			minimax(*p, &out, 0);
 
 		delete p;
 
@@ -163,6 +227,7 @@ public:
 // private:
 	double m_configuration[N_ENTRIES];
 	unsigned m_maxDepth;
+	bool m_useAlphaBeta;
 };
 
 IAi *IAi::createAi()

@@ -5,6 +5,9 @@
 
 using namespace tafl;
 
+#define min(x, y) ( (x) < (y) ? (x) : (y) )
+#define max(x, y) ( (x) > (y) ? (x) : (y) )
+
 enum configuration
 {
 	PIECE,
@@ -96,7 +99,8 @@ public:
 
 		IBoard::Color_t turn = board.getTurn();
 		const IBoard::PieceList_t pieces = board.getPieces(turn);
-		double out = INFINITY * getColorSign(turn);
+		int sign = getColorSign(turn);
+		double out = INFINITY * -sign;
 
 		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
 				it != pieces.end();
@@ -108,7 +112,7 @@ public:
 					moveIt != moves.end();
 					moveIt++) {
 				IBoard::Move move = *moveIt;
-				double cur;
+				double cur, oldBest;
 				IBoard *p;
 				bool res;
 
@@ -118,8 +122,15 @@ public:
 						"Can't make possible move!");
 
 				IBoard::Move nextMove;
+				oldBest = out;
 				cur = minimax(*p, &nextMove, depth + 1);
-				if (abs(cur) > abs(out)) {
+
+				if (turn == IBoard::BLACK)
+					out = max(cur, out);
+				else
+					out = min(cur, out);
+
+				if (out != oldBest) {
 					out = cur;
 					*bestMove = move;
 				}

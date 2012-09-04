@@ -482,7 +482,7 @@ TESTSUITE(ai)
 		delete ai;
 	}
 
-	TEST(testAlphaBeta, BoardFixture)
+	TEST(testAlphaBeta, BoardFixture, DEADLINE_REALTIME_MS(60000))
 	{
 		setupNodes();
 

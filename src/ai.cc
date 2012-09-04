@@ -223,6 +223,10 @@ out:
 		return std::string("");
 	}
 
+	void setAlgoritm(Algorithm_t algo)
+	{
+		m_useAlphaBeta = (algo == ALPHA_BETA);
+	}
 
 // private:
 	double m_configuration[N_ENTRIES];

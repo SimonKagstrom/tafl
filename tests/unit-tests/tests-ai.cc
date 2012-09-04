@@ -491,14 +491,14 @@ TESTSUITE(ai)
 		IBoard::Move move;
 
 		// Test using example from Wikipedia
-		ai->m_useAlphaBeta = false;
+		ai->setAlgoritm(IAi::MINIMAX);
 		move = ai->getBestMove(*board);
 		ASSERT_EQ(move.m_to.m_x, 1);
 
 		printf("\n");
 		ai->reset();
 		board->reset();
-		ai->m_useAlphaBeta = true;
+		ai->setAlgoritm(IAi::ALPHA_BETA);
 		move = ai->getBestMove(*board);
 		ASSERT_EQ(move.m_to.m_x, 1);
 
@@ -511,11 +511,11 @@ TESTSUITE(ai)
 
 		// Will take too long otherwise
 		realAi->m_maxDepth = 2;
-		realAi->m_useAlphaBeta = false;
+		realAi->setAlgoritm(IAi::MINIMAX);
 
 		move = realAi->getBestMove(*realBoard);
 
-		realAi->m_useAlphaBeta = true;
+		realAi->setAlgoritm(IAi::ALPHA_BETA);
 		otherMove = realAi->getBestMove(*realBoard);
 
 		printf("(%d,%d) -> (%d,%d)    vs    (%d,%d) -> (%d,%d)\n",

@@ -9,6 +9,13 @@ namespace tafl
 	class IAi
 	{
 	public:
+		typedef enum
+		{
+			MINIMAX,
+			ALPHA_BETA
+		} Algorithm_t;
+
+
 		virtual ~IAi() {}
 
 		/**
@@ -24,6 +31,8 @@ namespace tafl
 		virtual IBoard::Move getBestMove(IBoard &board) = 0;
 
 		virtual std::string toString() = 0;
+
+		virtual void setAlgoritm(Algorithm_t algo) = 0;
 
 
 		static IAi *createAi();

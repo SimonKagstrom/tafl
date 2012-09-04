@@ -34,6 +34,8 @@ namespace tafl
 
 		virtual void setAlgoritm(Algorithm_t algo) = 0;
 
+		virtual void setSearchDepth(unsigned depth) = 0;
+
 
 		static IAi *createAi();
 

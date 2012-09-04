@@ -228,6 +228,12 @@ out:
 		m_useAlphaBeta = (algo == ALPHA_BETA);
 	}
 
+	virtual void setSearchDepth(unsigned depth)
+	{
+		m_maxDepth = depth;
+	}
+
+
 // private:
 	double m_configuration[N_ENTRIES];
 	unsigned m_maxDepth;

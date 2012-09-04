@@ -510,7 +510,7 @@ TESTSUITE(ai)
 		IBoard::Move otherMove;
 
 		// Will take too long otherwise
-		realAi->m_maxDepth = 2;
+		realAi->setSearchDepth(2);
 		realAi->setAlgoritm(IAi::MINIMAX);
 
 		move = realAi->getBestMove(*realBoard);

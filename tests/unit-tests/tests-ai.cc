@@ -505,28 +505,34 @@ TESTSUITE(ai)
 		delete board;
 		delete ai;
 
-		IBoard *realBoard = IBoard::fromString(BOARD_9X9_INIT_STRING);
-		Ai *realAi = (Ai *)IAi::createAi();
-		IBoard::Move otherMove;
+		ASSERT_SCOPE_HEAP_LEAK_FREE
+		{
+			IBoard *realBoard = IBoard::fromString(BOARD_9X9_INIT_STRING);
+			Ai *realAi = (Ai *)IAi::createAi();
+			IBoard::Move otherMove;
 
-		// Will take too long otherwise
-		realAi->setSearchDepth(2);
-		realAi->setAlgoritm(IAi::MINIMAX);
+			// Will take too long otherwise
+			realAi->setSearchDepth(2);
+			realAi->setAlgoritm(IAi::MINIMAX);
 
-		move = realAi->getBestMove(*realBoard);
+			move = realAi->getBestMove(*realBoard);
 
-		realAi->setAlgoritm(IAi::ALPHA_BETA);
-		otherMove = realAi->getBestMove(*realBoard);
+			realAi->setAlgoritm(IAi::ALPHA_BETA);
+			otherMove = realAi->getBestMove(*realBoard);
 
-		printf("(%d,%d) -> (%d,%d)    vs    (%d,%d) -> (%d,%d)\n",
-				move.m_from.m_x, move.m_from.m_y,
-				move.m_to.m_x, move.m_to.m_y,
-				otherMove.m_from.m_x, otherMove.m_from.m_y,
-				otherMove.m_to.m_x, otherMove.m_to.m_y
-				);
-		ASSERT_EQ(move.m_from.m_x, otherMove.m_from.m_x);
-		ASSERT_EQ(move.m_from.m_y, otherMove.m_from.m_y);
-		ASSERT_EQ(move.m_to.m_x, otherMove.m_to.m_x);
-		ASSERT_EQ(move.m_to.m_y, otherMove.m_to.m_y);
+			printf("(%d,%d) -> (%d,%d)    vs    (%d,%d) -> (%d,%d)\n",
+					move.m_from.m_x, move.m_from.m_y,
+					move.m_to.m_x, move.m_to.m_y,
+					otherMove.m_from.m_x, otherMove.m_from.m_y,
+					otherMove.m_to.m_x, otherMove.m_to.m_y
+			);
+			ASSERT_EQ(move.m_from.m_x, otherMove.m_from.m_x);
+			ASSERT_EQ(move.m_from.m_y, otherMove.m_from.m_y);
+			ASSERT_EQ(move.m_to.m_x, otherMove.m_to.m_x);
+			ASSERT_EQ(move.m_to.m_y, otherMove.m_to.m_y);
+
+			delete realBoard;
+			delete realAi;
+		}
 	}
 }

@@ -12,6 +12,7 @@ enum configuration
 {
 	PIECE,
 	PIECE_CAN_REACH,
+	PIECE_COUNT,
 	KING_ON_BORDER,
 	VICTORY,
 	N_ENTRIES,
@@ -25,6 +26,7 @@ public:
 		// Guesses
 		m_configuration[PIECE] = 10;
 		m_configuration[PIECE_CAN_REACH] = 5;
+		m_configuration[PIECE_COUNT] = 2;
 		m_configuration[KING_ON_BORDER] = 40;
 		m_configuration[VICTORY] = 100000;
 
@@ -54,8 +56,12 @@ public:
 		double scoreBlack[dimensions * dimensions];
 		double scoreWhite[dimensions * dimensions];
 		double score[dimensions * dimensions];
+		int blackCount, whiteCount;
 		double out = 0;
 		IBoard::Piece king;
+
+		blackCount = 0;
+		whiteCount = 0;
 
 		for (unsigned i = 0; i < dimensions * dimensions; i++) {
 			scoreBlack[i] = 0.0;
@@ -71,13 +77,18 @@ public:
 			double *scoreTable = scoreBlack;
 			unsigned piecePos = piece.m_location.m_y * dimensions + piece.m_location.m_x;
 
-			if (piece.m_color == IBoard::WHITE)
+			if (piece.m_color == IBoard::WHITE) {
 				scoreTable = scoreWhite;
+				whiteCount++;
+			}
+			else {
+				blackCount++;
+			}
+
 			if (piece.m_isKing)
 				king = piece;
 
 			scoreTable[piecePos] += m_configuration[PIECE];
-
 
 			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
 					moveIt != moves.end();
@@ -98,6 +109,8 @@ public:
 
 		for (unsigned i = 0; i < dimensions * dimensions; i++)
 			out += score[i];
+
+		out += (blackCount - whiteCount) * m_configuration[PIECE_COUNT];
 
 		return out;
 	}

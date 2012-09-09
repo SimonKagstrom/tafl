@@ -1,0 +1,91 @@
+	double alphaBeta(IBoard &board, unsigned depth, double alpha, double beta)
+	{
+		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
+			return evaluate(board);
+
+		IBoard::Color_t turn = board.getTurn();
+		const IBoard::PieceList_t pieces = board.getPieces(turn);
+
+		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+
+			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
+					moveIt != moves.end();
+					moveIt++) {
+				IBoard::Move move = *moveIt;
+				double cur;
+				IBoard *p;
+				bool res;
+
+				p = IBoard::fromBoard(&board);
+				res = p->doMove(move);
+				panic_if(!res,
+						"Can't make possible move!");
+
+				cur = alphaBeta(*p, depth + 1, alpha, beta);
+
+				delete p;
+
+				if (turn == IBoard::BLACK) {
+					alpha = max(alpha, cur);
+					if (beta <= alpha)
+						goto out;
+				}
+				else {
+					beta = min(beta, cur);
+					if (beta <= alpha)
+						goto out;
+				}
+			}
+		}
+
+out:
+		if (turn == IBoard::BLACK)
+			return alpha;
+
+		return beta;
+	}
+
+	IBoard::Move getBestMove(IBoard &board)
+	{
+		IBoard::Move out;
+		IBoard::Color_t turn = board.getTurn();
+		IBoard::PieceList_t pieces = board.getPieces(turn);
+		double best = INFINITY * getColorSign(turn);
+
+		for (IBoard::PieceList_t::iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
+
+			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
+					moveIt != moves.end();
+					moveIt++) {
+				IBoard::Move move = *moveIt;
+				double cur;
+				IBoard *p;
+				bool res;
+
+				p = IBoard::fromBoard(&board);
+				res = p->doMove(move);
+				panic_if(!res,
+						"Can't make possible move!");
+
+				double alpha = -INFINITY;
+				double beta = INFINITY;
+				cur = alphaBeta(*p, 0, alpha, beta);
+				if (abs(cur) > abs(best)) {
+					out = move;
+					best = cur;
+				}
+
+				delete p;
+			}
+		}
+
+		return out;
+	}

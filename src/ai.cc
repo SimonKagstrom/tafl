@@ -14,9 +14,32 @@ enum configuration
 	PIECE_CAN_REACH,
 	PIECE_COUNT,
 	KING_ON_BORDER,
+	ADJACENT_TO_OWN,
+	ADJACENT_TO_OPPONENT,
 	VICTORY,
 	N_ENTRIES,
 };
+
+enum boardPieces
+{
+	P_EMPTY,
+	P_CORNER,
+	P_BLACK,
+	P_WHITE,
+	P_KING,
+};
+
+
+enum directions
+{
+	DIR_LEFT  = 0,
+	DIR_RIGHT = 1,
+	DIR_UP    = 2,
+	DIR_DOWN  = 3,
+
+	N_DIRS
+};
+
 
 class Ai : public IAi
 {
@@ -28,6 +51,8 @@ public:
 		m_configuration[PIECE_CAN_REACH] = 5;
 		m_configuration[PIECE_COUNT] = 2;
 		m_configuration[KING_ON_BORDER] = 40;
+		m_configuration[ADJACENT_TO_OWN] = 5;
+		m_configuration[ADJACENT_TO_OPPONENT] = 20;
 		m_configuration[VICTORY] = 100000;
 
 		m_useAlphaBeta = true;
@@ -53,6 +78,7 @@ public:
 		const IBoard::PieceList_t pieces = board.getPieces(IBoard::Color_t::BOTH);
 		unsigned dimensions = board.getDimensions();
 
+		enum boardPieces boardPieces[dimensions * dimensions];
 		double scoreBlack[dimensions * dimensions];
 		double scoreWhite[dimensions * dimensions];
 		double score[dimensions * dimensions];
@@ -64,6 +90,7 @@ public:
 		whiteCount = 0;
 
 		for (unsigned i = 0; i < dimensions * dimensions; i++) {
+			boardPieces[i] = P_EMPTY;
 			scoreBlack[i] = 0.0;
 			scoreWhite[i] = 0.0;
 			score[i] = 0.0;
@@ -80,13 +107,17 @@ public:
 			if (piece.m_color == IBoard::WHITE) {
 				scoreTable = scoreWhite;
 				whiteCount++;
+				boardPieces[piecePos] = P_WHITE;
 			}
 			else {
 				blackCount++;
+				boardPieces[piecePos] = P_BLACK;
 			}
 
-			if (piece.m_isKing)
+			if (piece.m_isKing) {
 				king = piece;
+				boardPieces[piecePos] = P_KING;
+			}
 
 			scoreTable[piecePos] += m_configuration[PIECE];
 
@@ -97,6 +128,32 @@ public:
 				unsigned moveDest = move.m_to.m_y * dimensions + move.m_to.m_x;
 
 				scoreTable[moveDest] += m_configuration[PIECE_CAN_REACH];
+			}
+		}
+
+		// Second round to take adjacent pieces into account
+		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
+				it != pieces.end();
+				it++) {
+			IBoard::Piece piece = *it;
+			enum boardPieces adjacent[N_DIRS];
+
+			getAdjacent(boardPieces, dimensions, piece.m_location.m_x, piece.m_location.m_y, adjacent);
+
+			for (unsigned i = 0; i < N_DIRS; i++) {
+				enum boardPieces cur = adjacent[i];
+				IBoard::Color_t adjacentColor = IBoard::BLACK;
+
+				if (cur == P_EMPTY || cur == P_CORNER)
+					continue;
+
+				if (cur == P_WHITE || cur == P_KING)
+					adjacentColor = IBoard::WHITE;
+
+				if (adjacentColor == piece.m_color)
+					out += getColorSign(piece.m_color) * m_configuration[ADJACENT_TO_OWN];
+				else // Bonus for the opponent
+					out += getColorSign(adjacentColor) * m_configuration[ADJACENT_TO_OPPONENT];
 			}
 		}
 
@@ -256,6 +313,30 @@ out:
 
 
 // private:
+	void getAdjacent(enum boardPieces *board, int dimensions, int x, int y, enum boardPieces *out)
+	{
+		if (x < 1)
+			out[DIR_LEFT] = P_CORNER;
+		else
+			out[DIR_LEFT] = board[y * dimensions + (x - 1)];
+
+		if (x > dimensions - 1)
+			out[DIR_RIGHT] = P_CORNER;
+		else
+			out[DIR_RIGHT] = board[y * dimensions + (x + 1)];
+
+
+		if (y < 1)
+			out[DIR_UP] = P_CORNER;
+		else
+			out[DIR_UP] = board[(y - 1) * dimensions + x];
+
+		if (x > dimensions - 1)
+			out[DIR_DOWN] = P_CORNER;
+		else
+			out[DIR_DOWN] = board[(y + 1) * dimensions + x];
+	}
+
 	bool isOnBorder(IBoard &board, IBoard::Point &point)
 	{
 		const unsigned dimensions = board.getDimensions();

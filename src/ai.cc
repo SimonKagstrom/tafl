@@ -18,7 +18,8 @@ enum configuration
 	ADJACENT_TO_OPPONENT,
 	RANDOM,
 	VICTORY,
-	N_ENTRIES,
+
+	N_CONF_ENTRIES,
 };
 
 enum boardPieces
@@ -300,7 +301,12 @@ out:
 
 	std::string toString()
 	{
-		return std::string("");
+		std::string out("A");
+
+		for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
+			out += fmt("%16llx", *((unsigned long long *)&m_configuration[i]));
+
+		return out;
 	}
 
 	void setAlgoritm(Algorithm_t algo)
@@ -312,7 +318,6 @@ out:
 	{
 		m_maxDepth = depth;
 	}
-
 
 // private:
 	void getAdjacent(enum boardPieces *board, int dimensions, int x, int y, enum boardPieces *out)
@@ -350,7 +355,7 @@ out:
 	}
 
 
-	double m_configuration[N_ENTRIES];
+	double m_configuration[N_CONF_ENTRIES];
 	unsigned m_maxDepth;
 	bool m_useAlphaBeta;
 };
@@ -362,5 +367,24 @@ IAi *IAi::createAi()
 
 IAi *IAi::fromString(std::string &str)
 {
-	return NULL;
+	if (str.size() < 1 + 16 * N_CONF_ENTRIES)
+		return NULL;
+
+	if (str[0] != 'A')
+		return NULL;
+
+	Ai *out = new Ai();
+
+	for (unsigned i = 0; i < N_CONF_ENTRIES; i++) {
+		unsigned offset = 1 + i * 16;
+
+		if (!getDoubleFromString(str, offset, &out->m_configuration[i])) {
+			delete out;
+			out = NULL;
+
+			break;
+		}
+	}
+
+	return out;
 }

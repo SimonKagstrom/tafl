@@ -43,3 +43,20 @@ bool getIntFromString(std::string str, unsigned int offset, unsigned int *out)
 
 	return true;
 }
+
+bool getDoubleFromString(std::string str, unsigned int offset, double *out)
+{
+	std::string in = str.substr(offset, 16);
+
+	char *endp;
+	const char *inc = in.c_str();
+	unsigned long long ull;
+
+	ull = strtoull(inc, &endp, 16);
+	if (endp == inc || (endp && *endp != '\0'))
+		return false;
+
+	*out = *(double *)&ull;
+
+	return true;
+}

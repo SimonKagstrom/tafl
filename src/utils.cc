@@ -50,13 +50,17 @@ bool getDoubleFromString(std::string str, unsigned int offset, double *out)
 
 	char *endp;
 	const char *inc = in.c_str();
-	unsigned long long ull;
+	union
+	{
+		unsigned long long ull;
+		double dbl;
+	} u;
 
-	ull = strtoull(inc, &endp, 16);
+	u.ull = strtoull(inc, &endp, 16);
 	if (endp == inc || (endp && *endp != '\0'))
 		return false;
 
-	*out = *(double *)&ull;
+	*out = u.dbl;
 
 	return true;
 }

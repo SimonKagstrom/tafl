@@ -303,8 +303,17 @@ out:
 	{
 		std::string out("A");
 
-		for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
-			out += fmt("%16llx", *((unsigned long long *)&m_configuration[i]));
+		for (unsigned i = 0; i < N_CONF_ENTRIES; i++) {
+			union
+			{
+				unsigned long long ull;
+				double dbl;
+			} u;
+
+			u.dbl = m_configuration[i];
+
+			out += fmt("%16llx", u.ull);
+		}
 
 		return out;
 	}

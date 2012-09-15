@@ -535,4 +535,40 @@ TESTSUITE(ai)
 			delete realAi;
 		}
 	}
+
+	TEST(toString)
+	{
+		ASSERT_SCOPE_HEAP_LEAK_FREE {
+			Ai *ai = (Ai *)IAi::createAi();
+			ASSERT_TRUE(ai);
+
+			for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
+				ai->m_configuration[i] = i + 1;
+
+			std::string s = ai->toString();
+
+			Ai *other = (Ai *)IAi::fromString(s);
+			ASSERT_TRUE(other);
+
+			for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
+				ASSERT_TRUE(other->m_configuration[i] == i + 1);
+
+			delete other;
+			delete ai;
+
+			// Wrong length
+			std::string o("A");
+			other = (Ai *)IAi::fromString(o);
+			ASSERT_TRUE(!other);
+
+			// Wrong number
+			s[1] = 'x';
+			other = (Ai *)IAi::fromString(s);
+			ASSERT_TRUE(!other);
+
+			s[0] = 'b';
+			other = (Ai *)IAi::fromString(s);
+			ASSERT_TRUE(!other);
+		}
+	}
 }

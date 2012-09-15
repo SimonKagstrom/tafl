@@ -16,6 +16,7 @@ enum configuration
 	KING_ON_BORDER,
 	ADJACENT_TO_OWN,
 	ADJACENT_TO_OPPONENT,
+	RANDOM,
 	VICTORY,
 	N_ENTRIES,
 };
@@ -53,6 +54,7 @@ public:
 		m_configuration[KING_ON_BORDER] = 40;
 		m_configuration[ADJACENT_TO_OWN] = 5;
 		m_configuration[ADJACENT_TO_OPPONENT] = 20;
+		m_configuration[RANDOM] = 0.05;
 		m_configuration[VICTORY] = 100000;
 
 		m_useAlphaBeta = true;
@@ -169,7 +171,7 @@ public:
 
 		out += (blackCount - whiteCount) * m_configuration[PIECE_COUNT];
 
-		return out;
+		return out + (rand() % 2 - 1) * m_configuration[RANDOM];
 	}
 
 	double minimax(IBoard &board, IBoard::Move *bestMove, unsigned depth)

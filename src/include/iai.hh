@@ -37,6 +37,11 @@ namespace tafl
 		virtual void setSearchDepth(unsigned depth) = 0;
 
 
+		virtual std::list<double> getRawConfiguration() = 0;
+
+		virtual void setRawConfiguration(std::list<double> conf) = 0;
+
+
 		static IAi *createAi();
 
 		static IAi *fromString(std::string &str);

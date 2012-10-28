@@ -328,6 +328,27 @@ out:
 		m_maxDepth = depth;
 	}
 
+
+	std::list<double> getRawConfiguration()
+	{
+		std::list<double> out;
+
+		for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
+			out.push_back(m_configuration[i]);
+
+		return out;
+	}
+
+	void setRawConfiguration(std::list<double> conf)
+	{
+		unsigned i = 0;
+
+		for (std::list<double>::iterator it = conf.begin();
+				it != conf.end();
+				it++)
+			m_configuration[i++] = *it;
+	}
+
 // private:
 	void getAdjacent(enum boardPieces *board, int dimensions, int x, int y, enum boardPieces *out)
 	{

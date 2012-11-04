@@ -395,6 +395,13 @@ IAi *IAi::createAi()
 	return new Ai();
 }
 
+IAi *IAi::fromAi(IAi *other)
+{
+	std::string str = other->toString();
+
+	return IAi::fromString(str);
+}
+
 IAi *IAi::fromString(std::string &str)
 {
 	if (str.size() < 1 + 16 * N_CONF_ENTRIES)

@@ -44,6 +44,8 @@ namespace tafl
 
 		static IAi *createAi();
 
+		static IAi *fromAi(IAi *other);
+
 		static IAi *fromString(std::string &str);
 	};
 }

@@ -64,3 +64,26 @@ bool getDoubleFromString(std::string str, unsigned int offset, double *out)
 
 	return true;
 }
+
+int write_file(const void *data, size_t len, const char *fmt, ...)
+{
+	char path[2048];
+	va_list ap;
+	FILE *fp;
+	int ret = 0;
+
+	/* Create the filename */
+	va_start(ap, fmt);
+	vsnprintf(path, 2048, fmt, ap);
+	va_end(ap);
+
+	fp = fopen(path, "w");
+	if (!fp)
+		return -1;
+
+	if (fwrite(data, sizeof(uint8_t), len, fp) != len)
+		ret = -1;
+	fclose(fp);
+
+	return ret;
+}

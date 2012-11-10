@@ -20,3 +20,5 @@ unsigned int get_number_of_cores(void);
 bool getIntFromString(std::string str, unsigned int offset, unsigned int *out);
 
 bool getDoubleFromString(std::string str, unsigned int offset, double *out);
+
+int write_file(const void *data, size_t len, const char *fmt, ...);

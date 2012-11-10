@@ -71,6 +71,11 @@ public:
 		return out;
 	}
 
+	std::string &getName()
+	{
+		return m_name;
+	}
+
 	static std::string generateName(unsigned generation, AiPlayer *father, AiPlayer *mother)
 	{
 		return fmt("AI_%u_%s_%s", generation, "A", "B");
@@ -283,7 +288,35 @@ public:
 
 	void onResult(League::PlayerList_t &sortedPlayers, League::PlayerScore_t &scores)
 	{
-		printf("End of match\n");
+		std::string s = header();
+
+		s = s + "<PRE>\n";
+		for (League::PlayerList_t::iterator it = sortedPlayers.begin();
+				it != sortedPlayers.end();
+				it++) {
+			AiPlayer *cur = *it;
+
+			s = s + fmt("%s: %u\n", cur->getName().c_str(), scores[cur]);;
+		}
+
+		s = s + "</PRE>\n";
+
+		s = s + footer();
+
+		write_file(s.c_str(), s.size(), "/tmp/kalle.html");
+	}
+
+private:
+	std::string header()
+	{
+		return "<HTML>\n"
+				"<BODY>\n";
+	}
+
+	std::string footer()
+	{
+		return "</BODY>\n"
+				"</HTML>\n";
 	}
 };
 

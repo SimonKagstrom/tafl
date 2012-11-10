@@ -9,12 +9,13 @@
 
 using namespace tafl;
 
+
 class AiPlayer
 {
 public:
 	friend class Match;
 
-	AiPlayer(IAi *ai, std::string &name) :
+	AiPlayer(IAi *ai, std::string name) :
 		m_ai(ai), m_score(0), m_name(name)
 	{
 	}
@@ -68,6 +69,11 @@ public:
 		m_ai->setRawConfiguration(crossConf);
 
 		return out;
+	}
+
+	static std::string generateName(unsigned generation, AiPlayer *father, AiPlayer *mother)
+	{
+		return fmt("AI_%u_%s_%s", generation, "A", "B");
 	}
 
 private:
@@ -277,35 +283,86 @@ public:
 
 	void onResult(League::PlayerList_t &sortedPlayers, League::PlayerScore_t &scores)
 	{
+		printf("End of match\n");
 	}
 };
 
 class Controller
 {
 public:
-	Controller()
+	Controller() :
+		m_generation(0), m_nPlayers(8)
 	{
 	}
 
 	void run()
 	{
+		League::PlayerList_t players = generateInitialPlayers(m_seed);
+
 		while (1) {
 			League league;
+
+			league.registerDisplayListener(&m_output);
+
+			for (League::PlayerList_t::iterator it = players.begin();
+					it != players.end();
+					it++) {
+				league.addPlayer(*it);
+			}
+
+			league.runChampionship();
+			// Sorted by result
+			players = league.getResults();
+
+			// Mutate and cross
+			players = survivalOfTheFittest(players);
+
+			m_generation++;
 		}
 	}
 
 private:
-	League::PlayerList_t generateInitialPlayers()
+	League::PlayerList_t survivalOfTheFittest(League::PlayerList_t &players)
+	{
+		return players;
+	}
+
+	League::PlayerList_t generateInitialPlayers(std::string &seed)
 	{
 		League::PlayerList_t out;
+		IAi *firstAi = NULL;
+
+		if (seed == "")
+			firstAi = IAi::fromString(seed);
+
+		if (!firstAi)
+			firstAi = IAi::createAi();
+		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, NULL, NULL)));
+
+		for (unsigned i = 0; i < m_nPlayers - 1; i++) {
+			AiPlayer *cur;
+
+			cur = new AiPlayer(firstAi, AiPlayer::generateName(m_generation, NULL, NULL));
+			cur->mutate(0.1);
+
+			out.push_back(cur);
+		}
 
 		return out;
 	}
 
+	unsigned int m_generation;
+	unsigned int m_nPlayers;
+	std::string m_seed;
+	HtmlGenerator m_output;
 };
 
 
 int main(int argc, const char *argv[])
 {
+	Controller ctrl;
+
+	ctrl.run();
+
 	return 0;
 }

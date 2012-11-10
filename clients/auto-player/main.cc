@@ -229,7 +229,7 @@ private:
 					plIt++) {
 				AiPlayer *player = *plIt;
 
-				m_playersByScore.push_back(player);
+				m_playersByScore.push_front(player);
 			}
 		}
 

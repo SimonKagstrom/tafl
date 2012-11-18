@@ -309,7 +309,7 @@ public:
 				it++) {
 			AiPlayer *cur = *it;
 
-			s = s + fmt("%s: %u       %s\n", cur->getName().c_str(), scores[cur], cur->getAi()->toString().c_str());;
+			s = s + fmt("%s: %u       %s\n", cur->getName().c_str(), scores[cur], cur->getAi()->toString().c_str());
 		}
 
 		s = s + "</PRE>\n";

@@ -359,7 +359,7 @@ private:
 		unsigned toPop = 5;
 
 		panic_if (players.size() < 5,
-				"Need more players than %zu", players.size());
+				"Need more players than %zu", (size_t)players.size());
 
 		if (players.size() < 7)
 			toPop = players.size() - 5;

@@ -70,14 +70,19 @@ public:
 		return out;
 	}
 
+	IAi *getAi()
+	{
+		return m_ai;
+	}
+
 	std::string &getName()
 	{
 		return m_name;
 	}
 
-	static std::string generateName(unsigned generation, AiPlayer *father, AiPlayer *mother)
+	static std::string generateName(unsigned generation, std::string s)
 	{
-		return fmt("AI_%u_%s_%s", generation, "A", "B");
+		return fmt("AI_%04u_%s", generation, s.c_str());
 	}
 
 private:
@@ -180,6 +185,14 @@ public:
 
 	void runChampionship()
 	{
+		m_playerScore.clear();
+
+		for (PlayerList_t::iterator it = m_players.begin();
+				it != m_players.end();
+				it++) {
+			m_playerScore[*it] = 0;
+		}
+
 		for (PlayerList_t::iterator it = m_players.begin();
 				it != m_players.end();
 				it++) {
@@ -295,7 +308,7 @@ public:
 				it++) {
 			AiPlayer *cur = *it;
 
-			s = s + fmt("%s: %u\n", cur->getName().c_str(), scores[cur]);;
+			s = s + fmt("%s: %u       %s\n", cur->getName().c_str(), scores[cur], cur->getAi()->toString().c_str());;
 		}
 
 		s = s + "</PRE>\n";
@@ -379,9 +392,10 @@ private:
 		AiPlayer *second = players.front();
 		players.pop_front();
 
-		AiPlayer *normal = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
-		AiPlayer *chernobyl = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
-		AiPlayer *fukushima = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
+		unsigned i = 0;
+		AiPlayer *normal = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_normal", i++)));
+		AiPlayer *chernobyl = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_chernobyl", i++)));
+		AiPlayer *fukushima = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_fukushima", i++)));
 
 		// Mutate two of the children
 		chernobyl->mutate(0.1);
@@ -406,12 +420,14 @@ private:
 
 		if (!firstAi)
 			firstAi = IAi::createAi();
-		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, NULL, NULL)));
+
+		unsigned n = 0;
+		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++))));
 
 		for (unsigned i = 0; i < m_nPlayers - 1; i++) {
 			AiPlayer *cur;
 
-			cur = new AiPlayer(firstAi, AiPlayer::generateName(m_generation, NULL, NULL));
+			cur = new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++)));
 			cur->mutate(0.1);
 
 			out.push_back(cur);

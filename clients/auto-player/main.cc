@@ -357,6 +357,22 @@ public:
 private:
 	League::PlayerList_t survivalOfTheFittest(League::PlayerList_t &players)
 	{
+		unsigned toPop = 4;
+
+		panic_if (players.size() < 4,
+				"Need more players than %u", players.size());
+
+		if (players.size() < 6)
+			toPop = players.size() - 4;
+
+		for (unsigned i = 0; i < toPop; i++) {
+			AiPlayer *p = players.back();
+
+			players.pop_back();
+
+			delete p;
+		}
+
 		return players;
 	}
 

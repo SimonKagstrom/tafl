@@ -302,7 +302,7 @@ public:
 
 		s = s + footer();
 
-		write_file(s.c_str(), s.size(), "/tmp/kalle.html");
+		write_file(s.c_str(), s.size(), "/home/ska/public_html/tafl-auto-player.html");
 	}
 
 private:

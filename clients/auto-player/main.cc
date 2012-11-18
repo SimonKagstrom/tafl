@@ -28,8 +28,9 @@ public:
 				it != conf.end();
 				it++) {
 			double cur = *it;
+			double rnd = drand48() - 0.5;
 
-			cur = cur * ((drand48()-0.5) * mutationRate);
+			cur = cur + (rnd * mutationRate);
 
 			mutatedConf.push_back(cur);
 		}

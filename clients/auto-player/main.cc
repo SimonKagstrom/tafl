@@ -19,6 +19,11 @@ public:
 	{
 	}
 
+	~AiPlayer()
+	{
+		delete m_ai;
+	}
+
 	void mutate(double mutationRate)
 	{
 		std::list<double> conf = m_ai->getRawConfiguration();

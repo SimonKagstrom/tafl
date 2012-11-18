@@ -425,9 +425,10 @@ private:
 		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++))));
 
 		for (unsigned i = 0; i < m_nPlayers - 1; i++) {
+			IAi *curAi = IAi::fromAi(firstAi);
 			AiPlayer *cur;
 
-			cur = new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++)));
+			cur = new AiPlayer(curAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++)));
 			cur->mutate(0.1);
 
 			out.push_back(cur);

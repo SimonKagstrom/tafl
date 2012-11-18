@@ -9,7 +9,6 @@
 
 using namespace tafl;
 
-
 class AiPlayer
 {
 public:
@@ -38,9 +37,9 @@ public:
 		m_ai->setRawConfiguration(mutatedConf);
 	}
 
-	AiPlayer breed(AiPlayer &other, std::string &name)
+	AiPlayer *breed(AiPlayer &other, std::string name)
 	{
-		AiPlayer out(IAi::createAi(), name);
+		AiPlayer *out = new AiPlayer(IAi::createAi(), name);
 
 		std::list<double> myConf = m_ai->getRawConfiguration();
 		std::list<double> otherConf = other.m_ai->getRawConfiguration();
@@ -357,14 +356,15 @@ public:
 private:
 	League::PlayerList_t survivalOfTheFittest(League::PlayerList_t &players)
 	{
-		unsigned toPop = 4;
+		unsigned toPop = 5;
 
-		panic_if (players.size() < 4,
-				"Need more players than %u", players.size());
+		panic_if (players.size() < 5,
+				"Need more players than %zu", players.size());
 
-		if (players.size() < 6)
-			toPop = players.size() - 4;
+		if (players.size() < 7)
+			toPop = players.size() - 5;
 
+		// Delete the worst players
 		for (unsigned i = 0; i < toPop; i++) {
 			AiPlayer *p = players.back();
 
@@ -372,6 +372,26 @@ private:
 
 			delete p;
 		}
+
+		// And add a few new players
+		AiPlayer *first = players.front();
+		players.pop_front();
+		AiPlayer *second = players.front();
+		players.pop_front();
+
+		AiPlayer *normal = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
+		AiPlayer *chernobyl = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
+		AiPlayer *fukushima = first->breed(*second, AiPlayer::generateName(m_generation, first, second));
+
+		// Mutate two of the children
+		chernobyl->mutate(0.1);
+		fukushima->mutate(0.05);
+
+		players.push_back(first);
+		players.push_back(second);
+		players.push_back(normal);
+		players.push_back(chernobyl);
+		players.push_back(fukushima);
 
 		return players;
 	}

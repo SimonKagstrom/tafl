@@ -336,7 +336,7 @@ class Controller
 {
 public:
 	Controller() :
-		m_generation(0), m_nPlayers(8)
+		m_generation(0), m_nPlayers(10)
 	{
 	}
 

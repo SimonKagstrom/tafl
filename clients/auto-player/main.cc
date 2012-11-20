@@ -375,13 +375,13 @@ public:
 private:
 	League::PlayerList_t survivalOfTheFittest(League::PlayerList_t &players)
 	{
-		unsigned toPop = 5;
+		unsigned toPop = 3;
 
-		panic_if (players.size() < 5,
+		panic_if (players.size() < 3,
 				"Need more players than %zu", (size_t)players.size());
 
-		if (players.size() < 7)
-			toPop = players.size() - 5;
+		if (players.size() < 5)
+			toPop = players.size() - 3;
 
 		// Delete the worst players
 		for (unsigned i = 0; i < toPop; i++) {

@@ -314,7 +314,7 @@ public:
 				it++) {
 			AiPlayer *cur = *it;
 
-			s = s + fmt("%s: %3u       %s\n", cur->getName().c_str(), scores[cur], cur->getAi()->toString().c_str());
+			s = s + fmt("%s %3u       %s\n", cur->getName().c_str(), scores[cur], cur->getAi()->toString().c_str());
 		}
 
 		s = s + "</PRE>\n";
@@ -399,7 +399,7 @@ private:
 		players.pop_front();
 
 		unsigned i = 0;
-		AiPlayer *normal = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_normal", i++)));
+		AiPlayer *normal = first->breed(*second, AiPlayer::generateName(m_generation,    fmt("%02d_normal   ", i++)));
 		AiPlayer *chernobyl = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_chernobyl", i++)));
 		AiPlayer *fukushima = first->breed(*second, AiPlayer::generateName(m_generation, fmt("%02d_fukushima", i++)));
 
@@ -428,7 +428,7 @@ private:
 			firstAi = IAi::createAi();
 
 		unsigned n = 0;
-		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT", n++))));
+		out.push_back(new AiPlayer(firstAi, AiPlayer::generateName(m_generation, fmt("%02d_INIT     ", n++))));
 
 		for (unsigned i = 0; i < m_nPlayers - 1; i++) {
 			IAi *curAi = IAi::fromAi(firstAi);

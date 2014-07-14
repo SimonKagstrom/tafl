@@ -17,6 +17,8 @@
 
 #include <string.h>
 
+#include <list>
+
 using namespace tafl;
 
 enum boardData

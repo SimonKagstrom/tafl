@@ -3,6 +3,7 @@
 #include "iboard.hh"
 
 #include <string>
+#include <list>
 
 namespace tafl
 {

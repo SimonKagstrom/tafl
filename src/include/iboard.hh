@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <list>
+#include <vector>
 
 // To create the initial board
 #define BOARD_9X9_INIT_STRING "B090902eeebbbeeeeeeebeeeeeeeeweeeebeeeweeebbbwwkwwbbbeeeweeebeeeeweeeeeeeebeeeeeeebbbeee"
@@ -70,8 +70,8 @@ namespace tafl
 			bool m_isKing;
 		};
 
-		typedef std::list<Piece> PieceList_t;
-		typedef std::list<Move> MoveList_t;
+		typedef std::vector<Piece> PieceList_t;
+		typedef std::vector<Move> MoveList_t;
 
 
 

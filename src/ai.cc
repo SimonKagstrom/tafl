@@ -58,7 +58,7 @@ public:
 		m_configuration[RANDOM] = 0.05;
 		m_configuration[VICTORY] = 100000;
 
-		m_useAlphaBeta = true;
+		m_algorithm = IAi::ALPHA_BETA;
 	}
 
 	int getColorSign(IBoard::Color_t color)
@@ -289,7 +289,7 @@ out:
 		IBoard *p = board.copy();
 		IBoard::Move out;
 
-		if (m_useAlphaBeta)
+		if (m_algorithm == IAi::ALPHA_BETA)
 			alphaBeta(*p, &out, 0, -INFINITY, INFINITY);
 		else
 			minimax(*p, &out, 0);
@@ -320,7 +320,7 @@ out:
 
 	void setAlgoritm(Algorithm_t algo)
 	{
-		m_useAlphaBeta = (algo == ALPHA_BETA);
+		m_algorithm = algo;
 	}
 
 	virtual void setSearchDepth(unsigned depth)
@@ -387,7 +387,7 @@ out:
 
 	double m_configuration[N_CONF_ENTRIES];
 	unsigned m_maxDepth;
-	bool m_useAlphaBeta;
+	Algorithm_t m_algorithm;
 };
 
 IAi *IAi::createAi()

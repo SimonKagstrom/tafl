@@ -26,6 +26,7 @@ include_directories(
 	../../src/include/
 	${GMOCK_INCLUDE_DIRS}
 	/usr/src/gmock/include
+	/usr/src/gtest/include
 	${LIBCRPCUT_INCLUDE_DIRS}
 	)
 

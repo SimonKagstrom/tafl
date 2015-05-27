@@ -25,6 +25,7 @@ set (CMAKE_CXX_FLAGS "-std=c++0x -Wall -D_GLIBCXX_USE_NANOSLEEP")
 include_directories(
 	../../src/include/
 	${GMOCK_INCLUDE_DIRS}
+	/usr/src/gmock/include
 	${LIBCRPCUT_INCLUDE_DIRS}
 	)
 

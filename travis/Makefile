@@ -1,6 +1,6 @@
 #!/usr/bin/make
 
-deps=crpcut-dev
+deps=crpcut-dev g++-4.8 git time
 
 .PHONY: prepare_environment
 
@@ -11,10 +11,12 @@ build:
 
 prepare_linux:
 	sudo apt-add-repository -y ppa:jonlar/crpcut
+	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 	sudo apt-get update
+	sudo apt-get install -y ${deps}
+	sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 	wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip -O /tmp/gmock-1.7.0.zip
 	unzip -d /tmp /tmp/gmock-1.7.0.zip
 	sudo mv /tmp/gmock-1.7.0 /usr/src/gmock
-	sudo apt-get install -y ${deps} git time
 
 prepare_environment: prepare_linux

@@ -17,6 +17,8 @@ prepare_linux:
 	sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 	wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip -O /tmp/gmock-1.7.0.zip
 	unzip -d /tmp /tmp/gmock-1.7.0.zip
-	cd /tmp/gmock-1.7.0 && ./configure && make && sudo make install
+	cd /tmp/gmock-1.7.0 && ./configure && make
+	cd /tmp/gmock-1.7.0/gtest && ./configure && make
+	sudo mv /tmp/gmock-1.7.0 /usr/src/gmock
 
 prepare_environment: prepare_linux

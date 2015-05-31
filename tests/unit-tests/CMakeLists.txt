@@ -30,7 +30,10 @@ include_directories(
 	${LIBCRPCUT_INCLUDE_DIRS}
 	)
 
-link_directories (/home/ska/local/lib)
+link_directories (
+	/home/ska/local/lib
+	/usr/src/gmock/gtest/lib/.libs
+  )
 
 add_executable (${TGT} ${${TGT}_SRCS})
 

@@ -13,7 +13,7 @@ build:
 prepare_linux:
 	sudo apt-add-repository -y ppa:jonlar/crpcut
 	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	sudo apt-get update
+	sudo apt-get update -y
 	sudo apt-get install -y ${deps}
 	sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 	wget https://googlemock.googlecode.com/files/gmock-1.7.0.zip -O /tmp/gmock-1.7.0.zip

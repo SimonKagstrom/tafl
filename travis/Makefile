@@ -9,7 +9,7 @@ build:
 	mkdir -p build build-ut
 	cd build-ut && cmake ../tests/unit-tests/
 	make -C build-ut
-	cd build-ut && kcov --coveralls-id=$TRAVIS_JOB_ID --include-pattern=tafl ./ut
+	cd build-ut && kcov --coveralls-id=${TRAVIS_JOB_ID} --include-pattern=tafl ./ut
 
 prepare_linux:
 	sudo apt-add-repository -y ppa:jonlar/crpcut

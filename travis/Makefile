@@ -8,6 +8,7 @@ build:
 	mkdir -p build build-ut
 	cd build-ut && cmake ../tests/unit-tests/
 	make -C build-ut
+	cd build-ut && kcov --coveralls-id=$TRAVIS_JOB_ID --include-pattern=tafl ./ut
 
 prepare_linux:
 	sudo apt-add-repository -y ppa:jonlar/crpcut
@@ -20,5 +21,6 @@ prepare_linux:
 	cd /tmp/gmock-1.7.0 && ./configure && make
 	cd /tmp/gmock-1.7.0/gtest && ./configure && make
 	sudo mv /tmp/gmock-1.7.0 /usr/src/gmock
+	wget https://github.com/SimonKagstrom/kcov/archive/master.tar.gz && tar xzf master.tar.gz && mkdir kcov-master/build && cd kcov-master/build && cmake .. && make && sudo make install
 
 prepare_environment: prepare_linux

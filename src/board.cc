@@ -96,7 +96,7 @@ public:
 		}
 	}
 
-	Board(Board *other) :
+	Board(const Board *other) :
 		m_currentTurn(other->m_currentTurn), m_winner(BOTH), m_h(other->m_h), m_w(other->m_w)
 	{
 		m_board = new boardPiece_t[m_h * m_w];
@@ -109,23 +109,23 @@ public:
 		delete[] m_board;
 	}
 
-	Color_t getTurn()
+	Color_t getTurn() const
 	{
 		return m_currentTurn;
 	}
 
-	Color_t getWinner()
+	Color_t getWinner() const
 	{
 		return m_winner;
 	}
 
-	unsigned getDimensions()
+	unsigned getDimensions() const
 	{
 		return m_w;
 	}
 
 
-	const PieceList_t getPieces(Color_t color)
+	const PieceList_t getPieces(Color_t color) const
 	{
 		PieceList_t out;
 
@@ -143,7 +143,7 @@ public:
 		return out;
 	}
 
-	bool getPiece(Point where, Piece &out)
+	bool getPiece(const Point & where, Piece &out) const
 	{
 		if (where.m_x < 0 || where.m_y >= m_w ||
 				where.m_y < 0 || where.m_y >= m_h)
@@ -164,7 +164,7 @@ public:
 	}
 
 
-	MoveList_t getPossibleMoves(Piece &piece)
+	MoveList_t getPossibleMoves(const Piece &piece)
 	{
 		MoveList_t out;
 		unsigned int sx, sy, x, y;
@@ -200,7 +200,7 @@ public:
 		return out;
 	}
 
-	bool canMove(Move &move)
+	bool canMove(const Move &move) const
 	{
 		unsigned int sx, sy, dx, dy;
 
@@ -259,7 +259,7 @@ public:
 		return true;
 	}
 
-	bool doMove(Move &move)
+	bool doMove(const Move &move)
 	{
 		if (!canMove(move))
 			return false;
@@ -324,7 +324,7 @@ public:
 		return out;
 	}
 
-	IBoard *copy()
+	IBoard *copy() const
 	{
 		return new Board(this);
 	}
@@ -458,7 +458,7 @@ public:
 		}
 	}
 
-	int dir(int v)
+	int dir(int v) const
 	{
 		if (v == 0)
 			return 0;
@@ -469,13 +469,13 @@ public:
 		return 1;
 	}
 
-	void pointToXy(Point &pt, unsigned int *x, unsigned int *y)
+	void pointToXy(const Point &pt, unsigned int *x, unsigned int *y) const
 	{
 		*x = pt.m_x;
 		*y = pt.m_y;
 	}
 
-	void moveToXy(Move &move, unsigned int *sx, unsigned int *sy, unsigned int *dx, unsigned int *dy)
+	void moveToXy(const Move &move, unsigned int *sx, unsigned int *sy, unsigned int *dx, unsigned int *dy) const
 	{
 		pointToXy(move.m_from, sx, sy);
 		pointToXy(move.m_to, dx, dy);

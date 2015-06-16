@@ -80,22 +80,22 @@ namespace tafl
 		};
 
 
-		virtual Color_t getTurn() = 0;
+		virtual Color_t getTurn() const = 0;
 
-		virtual unsigned getDimensions() = 0;
-
-
-		virtual const PieceList_t getPieces(Color_t color) = 0;
-
-		virtual bool getPiece(Point where, Piece &out) = 0;
+		virtual unsigned getDimensions() const = 0;
 
 
-		virtual MoveList_t getPossibleMoves(Piece &piece) = 0;
+		virtual const PieceList_t getPieces(Color_t color) const = 0;
+
+		virtual bool getPiece(const Point &where, Piece &out) const = 0;
 
 
-		virtual bool canMove(Move &move) = 0;
+		virtual MoveList_t getPossibleMoves(const Piece &piece) = 0;
 
-		virtual bool doMove(Move &move) = 0;
+
+		virtual bool canMove(const Move &move) const = 0;
+
+		virtual bool doMove(const Move &move) = 0;
 
 
 		/**
@@ -103,7 +103,7 @@ namespace tafl
 		 *
 		 * @return BOTH if there is no winner, the color otherwise
 		 */
-		virtual Color_t getWinner() = 0;
+		virtual Color_t getWinner() const = 0;
 
 		virtual void registerListener(IListener &listener) = 0;
 
@@ -112,7 +112,7 @@ namespace tafl
 
 		virtual std::string toString() = 0;
 
-		virtual IBoard *copy() = 0;
+		virtual IBoard *copy() const = 0;
 
 
 		static IBoard *fromString(std::string str);

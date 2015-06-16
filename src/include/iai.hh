@@ -33,10 +33,6 @@ namespace tafl
 
 		virtual std::string toString() = 0;
 
-		virtual void setAlgoritm(Algorithm_t algo) = 0;
-
-		virtual void setSearchDepth(unsigned depth) = 0;
-
 
 		virtual std::list<double> getRawConfiguration() = 0;
 

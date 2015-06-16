@@ -57,8 +57,6 @@ public:
 		m_configuration[ADJACENT_TO_OPPONENT] = 20;
 		m_configuration[RANDOM] = 0.05;
 		m_configuration[VICTORY] = 100000;
-
-		m_algorithm = IAi::ALPHA_BETA;
 	}
 
 	int getColorSign(IBoard::Color_t color)
@@ -175,56 +173,6 @@ public:
 		return out + (rand() % 2 - 1) * m_configuration[RANDOM];
 	}
 
-	double minimax(IBoard &board, IBoard::Move *bestMove, unsigned depth)
-	{
-		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
-			return evaluate(board);
-
-		IBoard::Color_t turn = board.getTurn();
-		const IBoard::PieceList_t pieces = board.getPieces(turn);
-		int sign = getColorSign(turn);
-		double out = INFINITY * -sign;
-
-		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
-				it != pieces.end();
-				it++) {
-			IBoard::Piece piece = *it;
-			IBoard::MoveList_t moves = board.getPossibleMoves(piece);
-
-			for (IBoard::MoveList_t::iterator moveIt = moves.begin();
-					moveIt != moves.end();
-					moveIt++) {
-				IBoard::Move move = *moveIt;
-				double cur, oldBest;
-				IBoard *p;
-				bool res;
-
-				p = board.copy();
-				res = p->doMove(move);
-				panic_if(!res,
-						"Can't make possible move!");
-
-				IBoard::Move nextMove;
-				oldBest = out;
-				cur = minimax(*p, &nextMove, depth + 1);
-
-				if (turn == IBoard::BLACK)
-					out = max(cur, out);
-				else
-					out = min(cur, out);
-
-				if (out != oldBest) {
-					out = cur;
-					*bestMove = move;
-				}
-
-				delete p;
-			}
-		}
-
-		return out;
-	}
-
 	double alphaBeta(IBoard &board, IBoard::Move *bestMove, unsigned depth, double alpha, double beta)
 	{
 		if (board.getWinner() != IBoard::BOTH || depth == m_maxDepth)
@@ -289,10 +237,7 @@ out:
 		IBoard *p = board.copy();
 		IBoard::Move out;
 
-		if (m_algorithm == IAi::ALPHA_BETA)
-			alphaBeta(*p, &out, 0, -INFINITY, INFINITY);
-		else
-			minimax(*p, &out, 0);
+		alphaBeta(*p, &out, 0, -INFINITY, INFINITY);
 
 		delete p;
 
@@ -317,17 +262,6 @@ out:
 
 		return out;
 	}
-
-	void setAlgoritm(Algorithm_t algo)
-	{
-		m_algorithm = algo;
-	}
-
-	virtual void setSearchDepth(unsigned depth)
-	{
-		m_maxDepth = depth;
-	}
-
 
 	std::list<double> getRawConfiguration()
 	{
@@ -387,7 +321,6 @@ out:
 
 	double m_configuration[N_CONF_ENTRIES];
 	unsigned m_maxDepth;
-	Algorithm_t m_algorithm;
 };
 
 IAi *IAi::createAi()

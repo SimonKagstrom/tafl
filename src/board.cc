@@ -277,6 +277,20 @@ public:
 		return true;
 	}
 
+	bool undoMove(const Move &move)
+	{
+		unsigned int sx, sy, dx, dy;
+
+		moveToXy(move, &sx, &sy, &dx, &dy);
+		m_board[dy * m_w + dx] = m_board[sy * m_w + sx];
+		m_board[sy * m_w + sx] = B_EMPTY;
+
+		m_currentTurn = m_currentTurn == BLACK ? WHITE : BLACK;
+
+		checkCaptures();
+
+		return true;
+	}
 
 	void registerListener(IListener &listener)
 	{

@@ -53,6 +53,11 @@ namespace tafl
 			{
 			}
 
+			Move inverse() const
+			{
+				return Move(m_to, m_from);
+			}
+
 			Point m_from;
 			Point m_to;
 		};
@@ -97,6 +102,7 @@ namespace tafl
 
 		virtual bool doMove(const Move &move) = 0;
 
+		virtual bool undoMove(const Move &move) = 0;
 
 		/**
 		 * Get the winner

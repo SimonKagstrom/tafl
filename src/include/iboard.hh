@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 
 // To create the initial board
 #define BOARD_9X9_INIT_STRING "B090902eeebbbeeeeeeebeeeeeeeeweeeebeeeweeebbbwwkwwbbbeeeweeebeeeeweeeeeeeebeeeeeeebbbeee"
@@ -118,7 +119,7 @@ namespace tafl
 
 		virtual std::string toString() = 0;
 
-		virtual IBoard *copy() const = 0;
+		virtual std::unique_ptr<IBoard>copy() const = 0;
 
 
 		static IBoard *fromString(std::string str);

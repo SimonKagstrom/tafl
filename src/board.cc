@@ -338,9 +338,9 @@ public:
 		return out;
 	}
 
-	IBoard *copy() const
+	std::unique_ptr<IBoard>copy() const
 	{
-		return new Board(this);
+		return std::unique_ptr<IBoard>(new Board(this));
 	}
 
 // For the unit test...

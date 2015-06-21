@@ -36,7 +36,7 @@ TESTSUITE(board)
 {
 	TEST(createBoard, BoardFixture)
 	{
-		Board *p, *other, *copy;
+		Board *p, *other;
 		std::string wrongFirst = BOARD_9X9_INIT_STRING;
 		std::string wrongChar = BOARD_9X9_INIT_STRING;
 		std::string twoKings = BOARD_9X9_INIT_STRING;
@@ -63,24 +63,22 @@ TESTSUITE(board)
 		ASSERT_TRUE(other);
 		ASSERT_TRUE(p->toString() == other->toString());
 
-		copy = (Board *)other->copy();
+		auto copy = other->copy();
 		ASSERT_TRUE(copy);
-		ASSERT_EQ(copy->m_w, other->m_w);
-		ASSERT_EQ(copy->m_h, other->m_h);
-		ASSERT_EQ(copy->m_currentTurn, other->m_currentTurn);
+		ASSERT_EQ(copy->getDimensions(), other->getDimensions());
+		ASSERT_EQ(copy->getTurn(), other->getTurn());
 		ASSERT_TRUE(copy->toString() == other->toString());
-		delete copy;
 
-		copy = (Board *)IBoard::fromString(other->toString());
-		ASSERT_TRUE(copy);
-		ASSERT_EQ(copy->m_w, other->m_w);
-		ASSERT_EQ(copy->m_h, other->m_h);
-		ASSERT_EQ(copy->m_currentTurn, other->m_currentTurn);
-		ASSERT_TRUE(copy->toString() == other->toString());
+		auto copy2 = (Board *)IBoard::fromString(other->toString());
+		ASSERT_TRUE(copy2);
+		ASSERT_EQ(copy2->m_w, other->m_w);
+		ASSERT_EQ(copy2->m_h, other->m_h);
+		ASSERT_EQ(copy2->m_currentTurn, other->m_currentTurn);
+		ASSERT_TRUE(copy2->toString() == other->toString());
 
 		delete p;
 		delete other;
-		delete copy;
+		delete copy2;
 	}
 
 
@@ -206,7 +204,7 @@ TESTSUITE(board)
 
 
 		possibleMoves = p->getPossibleMoves(piece);
-		ASSERT_EQ(possibleMoves.size(), 3 + 3); // Vertical and horizontal
+		ASSERT_EQ(possibleMoves.size(), (unsigned)(3 + 3)); // Vertical and horizontal
 
 		res = p->canMove(move);
 		ASSERT_TRUE(res);

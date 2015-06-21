@@ -27,9 +27,9 @@ namespace tafl
 		 * @return positive if the board is better for black, ~0 if equal, negative
 		 * if better for white
 		 */
-		virtual double evaluate(IBoard &board) = 0;
+		virtual double evaluate(IBoard &board) const = 0;
 
-		virtual IBoard::Move getBestMove(IBoard &board) = 0;
+		virtual IBoard::Move getBestMove(IBoard &board) const = 0;
 
 		virtual std::string toString() = 0;
 

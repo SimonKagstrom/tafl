@@ -175,18 +175,18 @@ TESTSUITE(ai)
 			m_curNode = &g_root;
 		}
 
-		virtual Color_t getTurn()
+		virtual Color_t getTurn() const
 		{
 			return m_turn;
 		}
 
-		virtual unsigned getDimensions()
+		virtual unsigned getDimensions() const
 		{
 			return 9;
 		}
 
 
-		virtual const PieceList_t getPieces(Color_t color)
+		virtual const PieceList_t getPieces(Color_t color) const
 		{
 			PieceList_t out;
 
@@ -195,13 +195,13 @@ TESTSUITE(ai)
 			return out;
 		}
 
-		virtual bool getPiece(Point where, Piece &out)
+		virtual bool getPiece(const Point &where, Piece &out) const
 		{
 			return false;
 		}
 
 
-		virtual MoveList_t getPossibleMoves(Piece &piece)
+		virtual MoveList_t getPossibleMoves(const Piece &piece)
 		{
 			MoveList_t out;
 
@@ -217,12 +217,12 @@ TESTSUITE(ai)
 		}
 
 
-		virtual bool canMove(Move &move)
+		virtual bool canMove(const Move &move) const
 		{
 			return true;
 		}
 
-		virtual bool doMove(Move &move)
+		virtual bool doMove(const Move &move)
 		{
 			if (m_turn == IBoard::BLACK)
 				m_turn = IBoard::WHITE;
@@ -239,7 +239,12 @@ TESTSUITE(ai)
 			return true;
 		}
 
-		virtual Color_t getWinner()
+		virtual bool undoMove(const Move &move)
+		{
+			return doMove(move);
+		}
+
+		virtual Color_t getWinner() const
 		{
 			return IBoard::BOTH;
 		}
@@ -257,15 +262,15 @@ TESTSUITE(ai)
 			return "";
 		}
 
-		virtual IBoard *copy()
+		virtual std::unique_ptr<IBoard> copy() const
 		{
-			return (IBoard *)new MockBoard(this);
+			return std::unique_ptr<IBoard>(new MockBoard(this));
 		}
 
-		MockBoard(MockBoard *copy)
+		MockBoard(const MockBoard *copy) :
+			m_turn(copy->m_turn),
+			m_curNode(copy->m_curNode)
 		{
-			m_turn = copy->m_turn;
-			m_curNode = copy->m_curNode;
 			memcpy(m_nodeChildren, copy->m_nodeChildren, sizeof(m_nodeChildren));
 		}
 
@@ -281,8 +286,6 @@ TESTSUITE(ai)
 	public:
 		MockEvaluateAi() : Ai()
 		{
-			// See http://en.wikipedia.org/wiki/File:AB_pruning.svg
-			m_maxDepth = 4;
 		}
 
 		void reset()
@@ -403,7 +406,7 @@ TESTSUITE(ai)
 
 		// Board two should be better (positive) for black
 		eval = ai->evaluate(*p);
-		ASSERT_TRUE(abs(eval) < ai->m_configuration[VICTORY]);
+		ASSERT_TRUE(abs(eval) < 1000);
 
 		res = p->doMove(move);
 		ASSERT_TRUE(res);
@@ -418,7 +421,7 @@ TESTSUITE(ai)
 		ASSERT_EQ(p->getWinner(), IBoard::WHITE);
 
 		eval = ai->evaluate(*p);
-		ASSERT_TRUE(eval == -ai->m_configuration[VICTORY]);
+		ASSERT_TRUE(eval == -1000);
 
 		delete ai;
 	}
@@ -516,33 +519,13 @@ TESTSUITE(ai)
 			Ai *ai = (Ai *)IAi::createAi();
 			ASSERT_TRUE(ai);
 
-			for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
-				ai->m_configuration[i] = i + 1;
-
 			std::string s = ai->toString();
 
 			Ai *other = (Ai *)IAi::fromString(s);
 			ASSERT_TRUE(other);
 
-			for (unsigned i = 0; i < N_CONF_ENTRIES; i++)
-				ASSERT_TRUE(other->m_configuration[i] == i + 1);
-
 			delete other;
 			delete ai;
-
-			// Wrong length
-			std::string o("A");
-			other = (Ai *)IAi::fromString(o);
-			ASSERT_TRUE(!other);
-
-			// Wrong number
-			s[1] = 'x';
-			other = (Ai *)IAi::fromString(s);
-			ASSERT_TRUE(!other);
-
-			s[0] = 'b';
-			other = (Ai *)IAi::fromString(s);
-			ASSERT_TRUE(!other);
 		}
 	}
 }

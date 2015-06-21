@@ -51,7 +51,7 @@ int main(int argc, const char *argv[])
 	panic_if(!ai,
 			"Can't create AI");
 
-	for (unsigned i = 0; i < 10; i++) {
+	for (unsigned i = 0; i < 100; i++) {
 		display(*board);
 		printf("Move %d: ", i + 1);
 		fflush(stdout);

@@ -485,34 +485,6 @@ TESTSUITE(ai)
 		delete ai;
 	}
 
-	TEST(testAlphaBeta, BoardFixture, DEADLINE_REALTIME_MS(60000))
-	{
-		setupNodes();
-
-		MockBoard *board = new MockBoard();
-		MockEvaluateAi *ai = new MockEvaluateAi();
-		IBoard::Move move;
-
-		// Test using example from Wikipedia
-		move = ai->getBestMove(*board);
-		ASSERT_EQ(move.m_to.m_x, 1U);
-
-		delete board;
-		delete ai;
-
-		ASSERT_SCOPE_HEAP_LEAK_FREE
-		{
-			IBoard *realBoard = IBoard::fromString(BOARD_9X9_INIT_STRING);
-			Ai *realAi = (Ai *)IAi::createAi();
-			IBoard::Move otherMove;
-
-			move = realAi->getBestMove(*realBoard);
-
-			delete realBoard;
-			delete realAi;
-		}
-	}
-
 	TEST(toString)
 	{
 		ASSERT_SCOPE_HEAP_LEAK_FREE {

@@ -34,10 +34,17 @@ enum directions
 	N_DIRS
 };
 
+// unit tests
+namespace ai
+{
+	class gameStats;
+}
 
 class Ai : public IAi
 {
 public:
+	friend class ai::gameStats;
+
 	Ai()
 	{
 	}
@@ -89,18 +96,16 @@ public:
 	{
 	public:
 		// Default for non-played games
-		GameStats() :
-			m_winner(IBoard::BOTH), m_plys(1000000), m_boardEval(0)
+		GameStats() : m_plys(1000000), m_boardEval(0)
 		{
 		}
 
 		GameStats(const GameStats &other) :
-			m_winner(other.m_winner), m_plys(other.m_plys), m_boardEval(other.m_boardEval)
+			m_plys(other.m_plys), m_boardEval(other.m_boardEval)
 		{
 		}
 
-		GameStats(const IBoard::Color_t winner, unsigned int plys, double eval) :
-			m_winner(winner),
+		GameStats(unsigned int plys, double eval) :
 			m_plys(plys),
 			m_boardEval(eval)
 		{
@@ -109,91 +114,42 @@ public:
 		// Positive for who?
 		bool compareForColor(IBoard::Color_t who, const GameStats &other) const
 		{
-			if (m_winner == who && other.m_winner != who)
-				return true;
-			else if (m_winner != who && other.m_winner == who)
-				return false;
-
 			auto diff = m_boardEval - other.m_boardEval;
 
-			if (who == IBoard::BLACK)
-				return diff >= 0;
+			if (diff != 0) {
+				if (who == IBoard::BLACK)
+					return diff > 0;
 
-			return diff < 0;
+				return diff < 0;
+			}
+
+			return m_plys < other.m_plys;
 		}
 
 		GameStats &operator=(const GameStats &other)
 		{
-			m_winner = other.m_winner;
 			m_plys = other.m_plys;
 			m_boardEval = other.m_boardEval;
 
 			return *this;
 		}
 
-		// Positive for black, negative for white
-		bool operator<(const GameStats &other) const
-		{
-			if (m_winner != other.m_winner) {
-				if (m_winner == IBoard::WHITE)
-					return false;
-				else if (m_winner == IBoard::BLACK)
-					return true;
-			}
-
-			return m_boardEval - other.m_boardEval < 0;
-		}
-
-		IBoard::Color_t m_winner;
-		unsigned int m_plys;
+		int m_plys;
 		double m_boardEval;
 	};
 
-
-	void display(const IBoard &board) const
-	{
-		unsigned size = board.getDimensions() * board.getDimensions();
-		char field[size];
-
-		memset(field, ' ', size);
-
-		const IBoard::PieceList_t pieces = board.getPieces(IBoard::BOTH);
-
-		for (IBoard::PieceList_t::const_iterator it = pieces.begin();
-				it != pieces.end();
-				it++) {
-			IBoard::Piece piece = *it;
-			char chr = '.';
-
-			if (piece.m_color != IBoard::BLACK) {
-				if (piece.m_isKing)
-					chr = 'k';
-				else
-					chr = 'o';
-			}
-
-			field[piece.m_location.m_y * board.getDimensions() + piece.m_location.m_x] = chr;
-		}
-
-		printf("###########\n");
-		for (unsigned y = 0; y < board.getDimensions(); y++) {
-			printf("#");
-			for (unsigned x = 0; x < board.getDimensions(); x++) {
-				printf("%c", field[y * board.getDimensions() + x]);
-			}
-			printf("#\n");
-		}
-		printf("###########\n");
-	}
-
 	IBoard::Move runMonteCarlo(IBoard &board, unsigned int deadlineUs) const
 	{
-		std::map<GameStats, IBoard::Move> bestMoves;
+		std::map<double, IBoard::Move> bestMoves;
 
+		/* Black evals to positive, but is negated here to
+		 * make the first entry in the map be the best */
 		auto turn = board.getTurn();
+		int sign = turn == IBoard::BLACK ? -1 : 1;
 
-		unsigned int nMoves = 0;
+
 		// Run games on all possible moves
+		unsigned int nMoves = 0;
 		auto pieces = board.getPieces(board.getTurn());
 		for (const auto &it : pieces) {
 			auto moves = board.getPossibleMoves(it);
@@ -201,6 +157,7 @@ public:
 			nMoves += moves.size();
 		}
 		auto deadlinePerMove = deadlineUs / nMoves;
+
 
 		pieces = board.getPieces(board.getTurn());
 		for (const auto &it : pieces) {
@@ -212,7 +169,10 @@ public:
 				cpy->doMove(move);
 
 				auto best = runRandomGames(*cpy, deadlinePerMove);
-				bestMoves[best] = move;
+				// Take board eval and plys-for-value in account
+				double order = best.m_boardEval * sign + best.m_plys * sign;
+
+				bestMoves[order] = move;
 			}
 		}
 
@@ -222,14 +182,10 @@ public:
 			return IBoard::Move(0,0,0,0);
 		}
 
-		// Return the maximum or minimum move
-		if (turn == IBoard::BLACK) {
-			auto it = bestMoves.end();
-			--it;
-			return it->second;
-		}
+		// Return the minimum value (as per sign)
+		auto it = bestMoves.begin();
 
-		return bestMoves.begin()->second;
+		return it->second;
  	}
 
 	GameStats runRandomGames(IBoard &board, unsigned int deadlineUs) const
@@ -252,12 +208,7 @@ public:
 		while (1) {
 			auto res = runRandomGame(board, 0);
 
-//				printf("WINNER %s for %s\n",
-//						res.m_winner == IBoard::BLACK ? "black" : "white",
-//								who == IBoard::BLACK ? "black" : "white");
-			if (bestGame.m_winner == IBoard::BOTH)
-				bestGame = res;
-			else if (res.compareForColor(who, bestGame))
+			if (res.compareForColor(who, bestGame))
 				bestGame = res;
 
 			auto now = std::chrono::high_resolution_clock::now();
@@ -267,7 +218,6 @@ public:
 				break;
 		}
 
-//		printf("RAN %u games\n", n);
 		return bestGame;
 	}
 
@@ -280,17 +230,17 @@ public:
 
 		// We have a winner!
 		if (winner != IBoard::BOTH)
-			return GameStats(winner, ply, evaluate(board));
+			return GameStats(ply, evaluate(board));
 
 		// Don't recurse too far
 		if (ply >= 200)
-			return GameStats(winner, ply, evaluate(board));
+			return GameStats(ply, evaluate(board));
 
 		auto pieces = board.getPieces(board.getTurn());
 
 		// No pieces (can't really happen, but let's say it's a draw)
 		if (pieces.size() == 0)
-			return GameStats(IBoard::BOTH, ply, evaluate(board));
+			return GameStats(ply, evaluate(board));
 
 		// Find a piece which has valid moves
 		IBoard::MoveList_t moves;
@@ -304,7 +254,7 @@ public:
 		// Select a move at random and try that
 		auto move = moves[rand() % moves.size()];
 
-		// Perform the move, try next ply and then restore the board
+		// Perform the move on a copy
 		auto cpy = board.copy();
 		cpy->doMove(move);
 

@@ -57,15 +57,24 @@ public:
 		double out = 0;
 
 		// Check winner
-		if (winner == IBoard::BLACK) {
-			out += 1000;
-		} else if (winner == IBoard::WHITE) {
-			out -= 1000;
-		} else {
-			// Count pieces
-			out += board.getPieces(IBoard::BLACK).size();
-			out -= board.getPieces(IBoard::WHITE).size();
-		}
+		if (winner == IBoard::BLACK)
+			return 1000;
+		else if (winner == IBoard::WHITE)
+			return -1000;
+
+		auto black = board.getPieces(IBoard::BLACK);
+		auto white = board.getPieces(IBoard::WHITE);
+
+		// Count pieces
+		out += black.size() * 4;
+		out -= white.size() * 4;
+
+		// Being able to move is good
+		// FIXME! This is inefficient
+		for (const auto &it : black)
+			out += board.getPossibleMoves(it).size();
+		for (const auto &it : white)
+			out -= board.getPossibleMoves(it).size();
 
 		return out;
 	}

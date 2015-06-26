@@ -14,6 +14,8 @@ using namespace tafl;
 #define min(x, y) ( (x) < (y) ? (x) : (y) )
 #define max(x, y) ( (x) > (y) ? (x) : (y) )
 
+static const unsigned maxPly = 200;
+
 enum boardPieces
 {
 	P_EMPTY,
@@ -96,7 +98,7 @@ public:
 	{
 	public:
 		// Default for non-played games
-		GameStats() : m_plys(1000000), m_boardEval(0)
+		GameStats() : m_plys(maxPly), m_boardEval(0)
 		{
 		}
 
@@ -170,7 +172,7 @@ public:
 
 				auto best = runRandomGames(*cpy, deadlinePerMove);
 				// Take board eval and plys-for-value in account
-				double order = best.m_boardEval * sign + best.m_plys * sign;
+				double order = best.m_boardEval * sign + (1 - maxPly / (double)best.m_plys) * sign;
 
 				bestMoves[order] = move;
 			}
@@ -233,7 +235,7 @@ public:
 			return GameStats(ply, evaluate(board));
 
 		// Don't recurse too far
-		if (ply >= 200)
+		if (ply >= maxPly - 1)
 			return GameStats(ply, evaluate(board));
 
 		auto pieces = board.getPieces(board.getTurn());

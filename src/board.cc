@@ -145,8 +145,7 @@ public:
 
 	bool getPiece(const Point & where, Piece &out) const
 	{
-		if (where.m_x < 0 || where.m_y >= m_w ||
-				where.m_y < 0 || where.m_y >= m_h)
+		if (where.m_y >= m_w || where.m_y >= m_h)
 			return false;
 
 		boardPiece_t piece = m_board[where.m_y * m_w + where.m_x];
@@ -178,19 +177,19 @@ public:
 				break;
 			out.push_back(Move(sx, sy, x, sy));
 		}
-		for (x = sx - 1; x >= 0 && x < m_w; x--) {
+		for (x = sx - 1; x < m_w; x--) {
 			if (m_board[sy * m_w + x] != B_EMPTY)
 				break;
 			out.push_back(Move(sx, sy, x, sy));
 		}
 
 		// Vertical
-		for (y = sy + 1; y >= 0 && y < m_h; y++) {
+		for (y = sy + 1; y < m_h; y++) {
 			if (m_board[y * m_w + sx] != B_EMPTY)
 				break;
 			out.push_back(Move(sx, sy, sx, y));
 		}
-		for (y = sy - 1; y >= 0 && y < m_h; y--) {
+		for (y = sy - 1; y < m_h; y--) {
 			if (m_board[y * m_w + sx] != B_EMPTY)
 				break;
 			out.push_back(Move(sx, sy, sx, y));
@@ -207,10 +206,10 @@ public:
 		moveToXy(move, &sx, &sy, &dx, &dy);
 
 		// Out of bounds
-		if (sx >= m_w || sx < 0 ||
-				sy >= m_h || sy < 0 ||
-				dx >= m_w || dx < 0 ||
-				dy >= m_h || dy < 0)
+		if (sx >= m_w ||
+				sy >= m_h ||
+				dx >= m_w ||
+				dy >= m_h)
 			return false;
 
 		// Move like a rook from the current tile

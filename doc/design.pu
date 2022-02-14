@@ -1,0 +1,45 @@
+@startuml
+
+interface IBoard {
+    getPieces(color)
+}
+
+interface IMoveTrait {
+    getMoves(board,piece)
+}
+
+interface IPiece {
+    pos
+}
+
+
+class MoveTrait {
+}
+
+class Board {
+    - movesForPiece()
+}
+
+class Game {
+}
+
+class Tablut {
+}
+
+class Piece {
+}
+
+
+MoveTrait --|> IMoveTrait
+
+Board --|> IBoard
+IBoard --> IPiece
+
+Piece --|> IPiece
+
+Game --> Tablut
+Tablut --> IBoard
+Tablut --> IMoveTrait
+
+
+@enduml

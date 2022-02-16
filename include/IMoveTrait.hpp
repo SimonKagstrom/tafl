@@ -23,7 +23,7 @@ public:
      *
      * @return the set of possible moves
      */
-    virtual std::vector<Move> getMoves(const IBoard &board, const IPiece &piece) = 0;
+    virtual std::vector<Move> getMoves(const IBoard &board, const Piece &piece) = 0;
 
 
     static std::unique_ptr<IMoveTrait> create();

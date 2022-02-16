@@ -25,7 +25,7 @@ const std::string tablut =
     "b   w   b"
     "    w    "
     "    b    "
-    "  bbbb   "
+    "   bbb   "
 ;
 
 }
@@ -65,16 +65,20 @@ SCENARIO("A board is created from a string")
 
         THEN("the pieces are placed correctly")
         {
+            auto pieces = p->getPieces(Color::Black);
+
+            REQUIRE(pieces.size() == 16);
+
             REQUIRE_FALSE(p->pieceAt({0,0}).has_value());
             REQUIRE_FALSE(p->pieceAt({0,1}).has_value());
             REQUIRE_FALSE(p->pieceAt({9,0}).has_value());
             REQUIRE_FALSE(p->pieceAt({0,9}).has_value());
             REQUIRE_FALSE(p->pieceAt({9,9}).has_value());
 
-            REQUIRE(p->pieceAt({3,0}) == IPiece::Type::Black);
-            REQUIRE(p->pieceAt({4,4}) == IPiece::Type::King);
-            REQUIRE(p->pieceAt({4,5}) == IPiece::Type::White);
-            REQUIRE(p->pieceAt({5,4}) == IPiece::Type::White);
+            REQUIRE(p->pieceAt({3,0}) == Piece::Type::Black);
+            REQUIRE(p->pieceAt({4,4}) == Piece::Type::King);
+            REQUIRE(p->pieceAt({4,5}) == Piece::Type::White);
+            REQUIRE(p->pieceAt({5,4}) == Piece::Type::White);
         }
     }
 }

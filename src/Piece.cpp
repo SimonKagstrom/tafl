@@ -1,54 +1,50 @@
-#include <IPiece.hpp>
+#include <Piece.hpp>
 
 using namespace tafl;
 
-namespace
+Piece::Piece(Piece::Type which) :
+    m_type(which)
 {
-
-class Piece : public IPiece
-{
-public:
-    Piece(IPiece::Type which) :
-        m_type(which)
-    {
-    }
-
-    virtual void place(const Pos &where) override
-    {
-        m_pos = where;
-    }
-
-    virtual Pos getPosition() const override
-    {
-        return m_pos;
-    }
-
-    virtual Type getType() const override
-    {
-        return m_type;
-    }
-
-private:
-    const IPiece::Type m_type;
-    Pos m_pos;
-};
-
 }
 
-std::unique_ptr<IPiece> IPiece::fromChar(char c)
+void Piece::place(const Pos &where)
+{
+    m_pos = where;
+}
+
+Pos Piece::getPosition() const
+{
+    return m_pos;
+}
+
+Piece::Type Piece::getType() const
+{
+    return m_type;
+}
+
+Color Piece::getColor() const
+{
+    if (m_type == Piece::Type::Black)
+    {
+        return Color::Black;
+    }
+
+    return Color::White;
+}
+
+std::unique_ptr<Piece> Piece::fromChar(char c)
 {
     switch(c)
     {
     case 'w':
-        return std::make_unique<Piece>(IPiece::Type::White);
+        return std::make_unique<Piece>(Piece::Type::White);
     case 'k':
-        return std::make_unique<Piece>(IPiece::Type::King);
+        return std::make_unique<Piece>(Piece::Type::King);
     case 'b':
-        return std::make_unique<Piece>(IPiece::Type::Black);
+        return std::make_unique<Piece>(Piece::Type::Black);
     default:
         break;
     }
-
 
     return nullptr;
 }

@@ -12,7 +12,7 @@ public:
     {
     }
 
-    std::vector<Move> getMoves(const IBoard &board, const IPiece &piece) override
+    std::vector<Move> getMoves(const IBoard &board, const Piece &piece) override
     {
         auto dim = board.getBoardDimension();
         auto pos = piece.getPosition();
@@ -60,7 +60,15 @@ private:
         {
             return {};
         }
+
+        // Another piece?
         if (board.pieceAt({nextX, nextY}))
+        {
+            return {};
+        }
+
+        // The middle spot? Forbidden
+        if (Pos{nextX, nextY} == Pos{dim/2, dim/2})
         {
             return {};
         }

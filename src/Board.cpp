@@ -1,8 +1,9 @@
+
 #include <IBoard.hpp>
-#include <IPiece.hpp>
 #include <cmath>
 #include <vector>
 #include <map>
+#include <unordered_set>
 
 using namespace tafl;
 
@@ -12,12 +13,12 @@ namespace
 class Board : public IBoard
 {
 public:
-    Board(unsigned dimensions, std::vector<std::unique_ptr<IPiece>> &pieces) :
+    Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>> &pieces) :
         m_dimensions(dimensions)
     {
         for (auto &p : pieces)
         {
-            m_pieces[p->getPosition()] = std::move(p);
+            m_pieces.emplace(p->getPosition(), *p);
         }
     }
 
@@ -27,7 +28,7 @@ public:
     }
 
 
-    std::optional<IPiece::Type> pieceAt(const Pos &pos) const override
+    std::optional<Piece::Type> pieceAt(const Pos &pos) const override
     {
         auto it = m_pieces.find(pos);
 
@@ -36,12 +37,31 @@ public:
             return {};
         }
 
-        return it->second->getType();
+        return it->second.getType();
+    }
+
+    const std::vector<Piece> getPieces(const Color &which) const override
+    {
+        std::vector<Piece> out;
+
+        for (auto &[k, v] : m_pieces)
+        {
+            if (v.getColor() == which)
+            {
+                out.push_back(v);
+            }
+        }
+
+        return out;
+    }
+
+    virtual void move(Move move) override
+    {
     }
 
 private:
     const unsigned m_dimensions;
-    std::map<Pos, std::unique_ptr<IPiece>> m_pieces;
+    std::map<Pos, Piece> m_pieces;
 };
 
 }
@@ -66,7 +86,7 @@ std::unique_ptr<IBoard> IBoard::fromString(const std::string &s)
 
     auto dimension = static_cast<unsigned>(f);
 
-    std::vector<std::unique_ptr<IPiece>> pieces;
+    std::vector<std::unique_ptr<Piece>> pieces;
 
     for (auto i = 0u; i < dimension * dimension; i++)
     {
@@ -74,7 +94,7 @@ std::unique_ptr<IBoard> IBoard::fromString(const std::string &s)
         auto y = i / dimension;
         auto c = s[i];
 
-        auto p = IPiece::fromChar(c);
+        auto p = Piece::fromChar(c);
         if (p)
         {
             p->place({x,y});

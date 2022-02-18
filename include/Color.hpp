@@ -9,4 +9,14 @@ enum class Color
     White,
 };
 
+constexpr Color operator!(const Color which)
+{
+    if (which == Color::Black)
+    {
+        return Color::White;
+    }
+
+    return Color::Black;
+}
+
 }

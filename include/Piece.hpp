@@ -38,7 +38,7 @@ public:
     static std::unique_ptr<Piece> fromChar(char c);
 
 protected:
-    const Type m_type;
+    Type m_type;
     Pos m_pos;
 };
 

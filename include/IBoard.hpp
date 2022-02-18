@@ -28,6 +28,10 @@ public:
     // Perform a move on the board
     virtual void move(Move move) = 0;
 
+    virtual Color getTurn() const = 0;
+
+    virtual void setTurn(Color which) = 0;
+
 
     static std::unique_ptr<IBoard> fromString(const std::string &s);
 };

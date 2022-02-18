@@ -23,6 +23,28 @@ struct Pos
     {
         return x == b.x && y == b.y;
     }
+
+
+    // Doesn't care about borders, so those must be checked
+    Pos above() const
+    {
+        return {x, y - 1};
+    }
+
+    Pos below() const
+    {
+        return {x, y + 1};
+    }
+
+    Pos right() const
+    {
+        return {x + 1, y};
+    }
+
+    Pos left() const
+    {
+        return {x - 1, y};
+    }
 };
 
 }

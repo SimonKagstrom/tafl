@@ -3,7 +3,7 @@
 #include <cmath>
 #include <vector>
 #include <map>
-#include <unordered_set>
+#include <set>
 
 using namespace tafl;
 
@@ -57,10 +57,111 @@ public:
 
     virtual void move(Move move) override
     {
+        if (!pieceAt(move.from))
+        {
+            return;
+        }
+        auto p = m_pieces.find(move.from)->second;
+
+        if (getTurn() != p.getColor())
+        {
+            return;
+        }
+
+        if (m_pieces.find(move.to) != m_pieces.end())
+        {
+            return;
+        }
+
+        m_pieces.emplace(move.to, p);
+        m_pieces.erase(move.from);
+
+        scanCaptures();
+
+        setTurn(!m_turn);
+    }
+
+    virtual Color getTurn() const override
+    {
+        return m_turn;
+    }
+
+    virtual void setTurn(Color which) override
+    {
+        m_turn = which;
     }
 
 private:
+    void scanCaptures()
+    {
+        std::set<Pos> captures;
+
+        auto dim = getBoardDimension();
+
+        for (auto &[pos, piece] : m_pieces)
+        {
+            if (piece.getColor() == m_turn)
+            {
+                continue;
+            }
+
+            auto above = pieceColorAt(pos.above());
+            auto below = pieceColorAt(pos.below());
+            auto right = pieceColorAt(pos.right());
+            auto left  = pieceColorAt(pos.left());
+
+            if (piece.getType() == Piece::Type::King && pos == Pos{dim/2, dim/2})
+            {
+                // The king in the castle - all 4 sides must be occupied
+                if (above && below && left && right)
+                {
+                    if (*above != piece.getColor() && *below != piece.getColor() &&
+                        *right != piece.getColor() && *right != piece.getColor())
+                    {
+                        captures.insert(pos);
+                    }
+                }
+
+            }
+            else
+            {
+                if (above && below)
+                {
+                    if (*above != piece.getColor() && *below != piece.getColor())
+                    {
+                        captures.insert(pos);
+                    }
+                }
+                if (right && left)
+                {
+                    if (*right != piece.getColor() && *right != piece.getColor())
+                    {
+                        captures.insert(pos);
+                    }
+                }
+            }
+        }
+
+        for (auto &toErase : captures)
+        {
+            m_pieces.erase(toErase);
+        }
+    }
+
+    std::optional<Color> pieceColorAt(const Pos &pos) const
+    {
+        auto it = m_pieces.find(pos);
+
+        if (it == m_pieces.end())
+        {
+            return {};
+        }
+
+        return it->second.getColor();
+    }
+
     const unsigned m_dimensions;
+    Color m_turn{Color::White};
     std::map<Pos, Piece> m_pieces;
 };
 

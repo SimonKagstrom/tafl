@@ -34,7 +34,7 @@ Color Piece::getColor() const
 
 std::unique_ptr<Piece> Piece::fromChar(char c)
 {
-    switch(c)
+    switch(tolower(c))
     {
     case 'w':
         return std::make_unique<Piece>(Piece::Type::White);

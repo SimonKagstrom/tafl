@@ -110,34 +110,22 @@ private:
             auto right = pieceColorAt(pos.right());
             auto left  = pieceColorAt(pos.left());
 
+            auto verticalEnemies = above && below && *above != piece.getColor() && *below != piece.getColor();
+            auto horizontalEnemies = left && right && *left != piece.getColor() && *right != piece.getColor();
+
             if (piece.getType() == Piece::Type::King && pos == Pos{dim/2, dim/2})
             {
                 // The king in the castle - all 4 sides must be occupied
-                if (above && below && left && right)
+                if (verticalEnemies && horizontalEnemies)
                 {
-                    if (*above != piece.getColor() && *below != piece.getColor() &&
-                        *right != piece.getColor() && *right != piece.getColor())
-                    {
-                        captures.insert(pos);
-                    }
+                    captures.insert(pos);
                 }
-
             }
             else
             {
-                if (above && below)
+                if (verticalEnemies || horizontalEnemies)
                 {
-                    if (*above != piece.getColor() && *below != piece.getColor())
-                    {
-                        captures.insert(pos);
-                    }
-                }
-                if (right && left)
-                {
-                    if (*right != piece.getColor() && *right != piece.getColor())
-                    {
-                        captures.insert(pos);
-                    }
+                    captures.insert(pos);
                 }
             }
         }

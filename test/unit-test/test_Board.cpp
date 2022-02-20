@@ -38,38 +38,6 @@ const std::string smallBoard =
     "   b "
 ;
 
-const std::string kingTakenBoard =
-    "     "
-    "bk. B"
-    "     "
-    "     "
-    "     "
-;
-
-const std::string kingInCastleBoard =
-    "b    "
-    "  b  "
-    " bk.B"
-    "  b  "
-    "w    "
-;
-
-const std::string blackTakenBoard =
-    "    w"
-    "    b"
-    " k W."
-    "     "
-    "     "
-;
-
-const std::string whiteTakenBoard =
-    "bw. B"
-    "     "
-    "  k  "
-    "     "
-    "     "
-;
-
 struct BoardHelper
 {
     std::optional<Piece> selected;
@@ -127,6 +95,12 @@ static std::optional<BoardHelper> parse(const std::string &s)
 SCENARIO("the helper can select moves and pieces")
 {
     auto h1 = parse("   ");
+    const std::string blackTakenBoard =
+        "    w"
+        "    b"
+        " k W."
+        "     "
+        "     ";
     auto h2 = parse(blackTakenBoard);
 
     THEN("invalid strings can't be parsed")
@@ -207,6 +181,12 @@ SCENARIO("pieces can be taken on boards")
 {
     THEN("black pieces can be taken")
     {
+        const std::string blackTakenBoard =
+            "    w"
+            "    b"
+            " k W."
+            "     "
+            "     ";
         auto b = parse(blackTakenBoard);
 
         REQUIRE(b->board->pieceAt({4,1}));
@@ -216,8 +196,54 @@ SCENARIO("pieces can be taken on boards")
         REQUIRE(b->board->getTurn() == Color::Black);
     }
 
+    THEN("two pieces can be taken in one round")
+    {
+        const std::string twoBlackTakenBoard =
+            "    w"
+            "    b"
+            " k W."
+            "    b"
+            "    w"
+        ;
+        auto b = parse(twoBlackTakenBoard);
+
+        REQUIRE(b->board->pieceAt({4,1}));
+        REQUIRE(b->board->pieceAt({4,3}));
+        b->board->move(*b->move);
+        REQUIRE_FALSE(b->board->pieceAt({4,1}));
+        REQUIRE_FALSE(b->board->pieceAt({4,3}));
+
+        REQUIRE(b->board->getTurn() == Color::Black);
+    }
+
+    THEN("white pieces can be taken")
+    {
+        const std::string whiteTakenBoard =
+            "bw. B"
+            "     "
+            "  k  "
+            "     "
+            "     ";
+
+        auto b = parse(whiteTakenBoard);
+        b->board->setTurn(Color::Black);
+
+        REQUIRE(b->board->pieceAt({1,0}));
+        b->board->move(*b->move);
+        REQUIRE_FALSE(b->board->pieceAt({1,0}));
+
+        REQUIRE(b->board->getTurn() == Color::White);
+    }
+
     THEN("the king pieces can be taken outside of the castle")
     {
+        const std::string kingTakenBoard =
+            "     "
+            "bk. B"
+            "     "
+            "     "
+            "     ";
+
         auto b = parse(kingTakenBoard);
         b->board->setTurn(Color::Black);
 
@@ -229,6 +255,13 @@ SCENARIO("pieces can be taken on boards")
 
     THEN("the king pieces can be taken in the castle, with 4 enemies")
     {
+        const std::string kingInCastleBoard =
+            "b    "
+            "  b  "
+            " bk.B"
+            "  b  "
+            "w    ";
+
         auto b = parse(kingInCastleBoard);
         b->board->setTurn(Color::Black);
 

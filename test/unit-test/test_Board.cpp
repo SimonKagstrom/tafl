@@ -194,6 +194,7 @@ SCENARIO("pieces can be taken on boards")
         REQUIRE_FALSE(b->board->pieceAt({4,1}));
 
         REQUIRE(b->board->getTurn() == Color::Black);
+        REQUIRE_FALSE(b->board->getWinner());
     }
 
     THEN("two pieces can be taken in one round")
@@ -214,6 +215,7 @@ SCENARIO("pieces can be taken on boards")
         REQUIRE_FALSE(b->board->pieceAt({4,3}));
 
         REQUIRE(b->board->getTurn() == Color::Black);
+        REQUIRE_FALSE(b->board->getWinner());
     }
 
     THEN("white pieces can be taken")
@@ -233,6 +235,7 @@ SCENARIO("pieces can be taken on boards")
         REQUIRE_FALSE(b->board->pieceAt({1,0}));
 
         REQUIRE(b->board->getTurn() == Color::White);
+        REQUIRE_FALSE(b->board->getWinner());
     }
 
     THEN("the king pieces can be taken outside of the castle")
@@ -251,6 +254,7 @@ SCENARIO("pieces can be taken on boards")
         b->board->move(*b->move);
         REQUIRE_FALSE(b->board->pieceAt({1,1}));
         REQUIRE(b->board->getTurn() == Color::White);
+        REQUIRE(b->board->getWinner() == Color::Black);
     }
 
     THEN("the king pieces can be taken in the castle, with 4 enemies")
@@ -275,5 +279,72 @@ SCENARIO("pieces can be taken on boards")
         REQUIRE(b->board->pieceAt({2,2}));
         b->board->move(*b->move);
         REQUIRE_FALSE(b->board->pieceAt({2,2}));
+        REQUIRE(b->board->getWinner() == Color::Black);
+    }
+}
+
+SCENARIO("the winner of a board can be evaluated")
+{
+    THEN("a board without a winner has no winner")
+    {
+        const std::string noWinner =
+            "bw  b"
+            "     "
+            "  k  "
+            "     "
+            "     ";
+        auto b = parse(noWinner);
+
+        REQUIRE(b->board->getWinner() == std::nullopt);
+    }
+
+    THEN("a board without a king has black as the winner")
+    {
+        const std::string blackWinner =
+            "bw  b"
+            "     "
+            "     "
+            "     "
+            "     ";
+        auto b = parse(blackWinner);
+
+        REQUIRE(b->board->getWinner() == Color::Black);
+    }
+
+    THEN("white wins if the king is at the edge of the board")
+    {
+        const std::string kingEdge1 =
+            "b   b"
+            "     "
+            "k    "
+            "     "
+            "     ";
+        const std::string kingEdge2 =
+            "b   b"
+            "    k"
+            "     "
+            "     "
+            "     ";
+        const std::string kingEdge3 =
+            "bk  b"
+            "     "
+            "     "
+            "     "
+            "     ";
+        const std::string kingEdge4 =
+            "b   b"
+            "     "
+            "     "
+            "     "
+            "   k ";
+        auto b1 = parse(kingEdge1);
+        auto b2 = parse(kingEdge2);
+        auto b3 = parse(kingEdge3);
+        auto b4 = parse(kingEdge4);
+
+        REQUIRE(b1->board->getWinner() == Color::White);
+        REQUIRE(b2->board->getWinner() == Color::White);
+        REQUIRE(b3->board->getWinner() == Color::White);
+        REQUIRE(b4->board->getWinner() == Color::White);
     }
 }

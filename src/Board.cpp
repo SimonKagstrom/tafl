@@ -91,6 +91,30 @@ public:
         m_turn = which;
     }
 
+    virtual std::optional<Color> getWinner() const override
+    {
+        auto itKing = std::find_if(m_pieces.begin(), m_pieces.end(), [](const std::pair<Pos, Piece> &cur)
+        {
+            return cur.second.getType() == Piece::Type::King;
+        });
+
+        if (itKing == m_pieces.end())
+        {
+            // The king is gone
+            return Color::Black;
+        }
+        const auto dim = getBoardDimension();
+        auto kingPos = itKing->first;
+
+        if (kingPos.x == 0 || kingPos.x == dim - 1 ||
+            kingPos.y == 0 || kingPos.y == dim - 1)
+        {
+            return Color::White;
+        }
+
+        return std::nullopt;
+    }
+
 private:
     void scanCaptures()
     {
@@ -151,6 +175,8 @@ private:
     const unsigned m_dimensions;
     Color m_turn{Color::White};
     std::map<Pos, Piece> m_pieces;
+
+    std::optional<Color> m_winner;
 };
 
 }

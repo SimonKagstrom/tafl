@@ -33,6 +33,13 @@ public:
     virtual void setTurn(Color which) = 0;
 
 
+    /**
+     * Return the winner of the current board.
+     *
+     * @return std::nullopt if there is no winner, otherwise the winning color
+     */
+    virtual std::optional<Color> getWinner() const = 0;
+
     static std::unique_ptr<IBoard> fromString(const std::string &s);
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <IBoard.hpp>
+#include <IMoveTrait.hpp>
 
 namespace tafl
 {
@@ -16,24 +17,54 @@ public:
 
     const std::vector<Piece> getPieces(const Color &which) const override;
 
-    virtual void move(Move move) override;
+    std::vector<Move> getPossibleMoves() const override;
 
-    virtual Color getTurn() const override;
+    void move(Move move) override;
 
-    virtual void setTurn(Color which) override;
+    Color getTurn() const override;
 
-    virtual std::optional<Color> getWinner() const override;
+    void setTurn(Color which) override;
+
+    std::optional<Color> getWinner() const override;
+
+    std::future<std::optional<Move>> calculateBestMove(const std::chrono::milliseconds &quota,
+        std::function<void()> onFutureReady) override;
 
 private:
+    struct PlayResult
+    {
+        unsigned whiteWins{0};
+        unsigned blackWins{0};
+
+        PlayResult operator+(const std::optional<Color> &result)
+        {
+            return {whiteWins + (result.value() == Color::White),
+                    blackWins + (result.value() == Color::Black)};
+        }
+
+        PlayResult operator+(const PlayResult &other)
+        {
+            return {whiteWins + other.whiteWins,
+                    blackWins + other.blackWins};
+        }
+    };
+
+    Board(Board &);
+
     void scanCaptures();
 
     std::optional<Color> pieceColorAt(const Pos &pos) const;
 
+    /*
+     * Run random moves until a winner is found.
+     */
+    PlayResult simulate();
+
     const unsigned m_dimensions;
     Color m_turn{Color::White};
-    std::map<Pos, Piece> m_pieces;
+    std::unordered_map<Pos, Piece> m_pieces;
 
-    std::optional<Color> m_winner;
+    std::unique_ptr<IMoveTrait> m_moveTrait;
 };
 
 }

@@ -9,14 +9,22 @@
 
 using namespace tafl;
 
-
 Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>> &pieces) :
-    m_dimensions(dimensions)
+    m_dimensions(dimensions),
+    m_moveTrait(IMoveTrait::create())
 {
     for (auto &p : pieces)
     {
         m_pieces.emplace(p->getPosition(), *p);
     }
+}
+
+Board::Board(Board &other) :
+    m_dimensions(other.m_dimensions),
+    m_turn(other.m_turn),
+    m_pieces(other.m_pieces),
+    m_moveTrait(IMoveTrait::create())
+{
 }
 
 unsigned Board::getBoardDimension() const
@@ -56,22 +64,23 @@ void Board::move(Move move)
 {
     if (!pieceAt(move.from))
     {
-        return;
+        assert(false && "No piece at from");
     }
     auto p = m_pieces.find(move.from)->second;
 
     if (getTurn() != p.getColor())
     {
-        return;
+        assert(false && "Turn wrong");
     }
 
     if (m_pieces.find(move.to) != m_pieces.end())
     {
-        return;
+        assert(false && "piece at destination");
     }
 
-    m_pieces.emplace(move.to, p);
+    p.place(move.to);
     m_pieces.erase(move.from);
+    m_pieces.emplace(move.to, p);
 
     scanCaptures();
 
@@ -110,6 +119,57 @@ std::optional<Color> Board::getWinner() const
     }
 
     return std::nullopt;
+}
+
+std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::milliseconds &quota,
+    std::function<void()> onFutureReady)
+{
+    struct MoveAndResults
+    {
+        Move move;
+        Board::PlayResult results;
+    };
+    auto possibleMoves = getPossibleMoves();
+
+    std::promise<std::optional<Move>> p;
+
+    if (possibleMoves.empty())
+    {
+        p.set_value(std::nullopt);
+    }
+    else
+    {
+        std::vector<MoveAndResults> results;
+        for (auto &cur : possibleMoves)
+        {
+            results.push_back({cur, Board::PlayResult()});
+        }
+
+        for (auto x = 0u; x < 100; x++)
+        {
+            for (auto &cur : results)
+            {
+                auto b = Board(*this);
+                b.move(cur.move);
+
+                cur.results = cur.results + b.simulate();
+            }
+        }
+
+        auto black = m_turn == Color::Black;
+        std::sort(results.begin(), results.end(), [black](const MoveAndResults &a, const MoveAndResults &b)
+        {
+            if (black)
+            {
+                return a.results.blackWins > b.results.blackWins;
+            }
+            return a.results.whiteWins > b.results.whiteWins;
+        });
+
+        p.set_value(results[0].move);
+    }
+
+    return p.get_future();
 }
 
 void Board::scanCaptures()
@@ -166,6 +226,50 @@ std::optional<Color> Board::pieceColorAt(const Pos &pos) const
     }
 
     return it->second.getColor();
+}
+
+std::vector<Move> Board::getPossibleMoves() const
+{
+    std::vector<Move> possibleMoves;
+
+    for (auto &[pos, piece] : m_pieces)
+    {
+        if (piece.getColor() != m_turn)
+        {
+            continue;
+        }
+
+        auto cur = m_moveTrait->getMoves(*this, piece);
+        std::copy(cur.begin(), cur.end(), std::back_inserter(possibleMoves));
+    }
+
+    return possibleMoves;
+}
+
+
+Board::PlayResult Board::simulate()
+{
+    while (true)
+    {
+        auto winner = getWinner();
+
+        if (winner)
+        {
+            return Board::PlayResult() + winner;
+        }
+
+        auto possibleMoves = getPossibleMoves();
+        if (possibleMoves.empty())
+        {
+            // Impossible, but anyway
+            return Board::PlayResult();
+        }
+
+        auto selected = rand() % possibleMoves.size();
+
+        auto m = possibleMoves[selected];
+        move(m);
+    }
 }
 
 

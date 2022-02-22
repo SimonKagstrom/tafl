@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 namespace tafl
 {
 
@@ -48,3 +50,12 @@ struct Pos
 };
 
 }
+
+template <>
+struct std::hash<tafl::Pos>
+{
+    std::size_t operator()(const tafl::Pos& k) const
+    {
+        return (std::hash<unsigned>()(k.x) ^ std::hash<unsigned>()(k.y));
+    }
+};

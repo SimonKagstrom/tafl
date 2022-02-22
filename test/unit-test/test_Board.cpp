@@ -126,6 +126,70 @@ SCENARIO("A board is created from a string")
     }
 }
 
+SCENARIO("boards can calculate all possible moves")
+{
+    auto MF = [](const std::vector<Move> &moves, const Move &needle)
+    {
+        return std::count(moves.begin(), moves.end(), needle) == 1;
+    };
+
+    GIVEN("a 3x3 board with")
+    {
+        const std::string blackTakenBoard =
+            "w b"
+            " k "
+            " b ";
+        auto b = parse(blackTakenBoard);
+        REQUIRE(b->board->getTurn() == Color::White);
+
+        THEN("the set of possible moves for white is correct")
+        {
+            auto p = b->board->getPossibleMoves();
+
+            REQUIRE(p.size() == 6);
+
+            REQUIRE(MF(p, {{0,0}, {1,0}}));
+            REQUIRE(MF(p, {{0,0}, {0,1}}));
+            REQUIRE(MF(p, {{0,0}, {0,2}}));
+
+            REQUIRE(MF(p, {{1,1}, {0,1}}));
+            REQUIRE(MF(p, {{1,1}, {1,0}}));
+            REQUIRE(MF(p, {{1,1}, {2,1}}));
+
+            AND_THEN("After a move, the possible moves is updated")
+            {
+                b->board->move({{0,0}, {1,0}});
+                REQUIRE(b->board->getTurn() == Color::Black);
+
+                auto p = b->board->getPossibleMoves();
+
+                REQUIRE(p.size() == 4);
+
+                REQUIRE(MF(p, {{2,0}, {2,1}}));
+                REQUIRE(MF(p, {{2,0}, {2,2}}));
+
+                REQUIRE(MF(p, {{1,2}, {0,2}}));
+                REQUIRE(MF(p, {{1,2}, {2,2}}));
+            }
+        }
+
+        THEN("the set of possible moves for black is correct")
+        {
+            b->board->setTurn(Color::Black);
+            auto p = b->board->getPossibleMoves();
+
+            REQUIRE(p.size() == 5);
+
+            REQUIRE(MF(p, {{2,0}, {1,0}}));
+            REQUIRE(MF(p, {{2,0}, {2,1}}));
+            REQUIRE(MF(p, {{2,0}, {2,2}}));
+
+            REQUIRE(MF(p, {{1,2}, {0,2}}));
+            REQUIRE(MF(p, {{1,2}, {2,2}}));
+        }
+    }
+}
+
 SCENARIO("pieces can be taken on boards")
 {
     THEN("black pieces can be taken")

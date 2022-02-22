@@ -2,6 +2,10 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 enable_testing()
 
+add_compile_options(-fsanitize=address,undefined)
+add_link_options(-fsanitize=address,undefined)
+
+
 include_directories(
     ../../include/
     Catch2/single_include
@@ -14,6 +18,7 @@ add_executable(ut
     ../../src/Piece.cpp
     ../../src/MoveTrait.cpp
     test_Board.cpp
+    test_MoveCalculation.cpp
     test_MoveTrait.cpp
     test_Piece.cpp
     test_Pos.cpp

@@ -28,10 +28,13 @@ public:
     MAKE_CONST_MOCK0(getBoardDimension, unsigned(), override);
     MAKE_CONST_MOCK1(pieceAt, std::optional<Piece::Type>(const Pos &pos), override);
     MAKE_CONST_MOCK1(getPieces, const std::vector<Piece>(const Color &which), override);
+    MAKE_CONST_MOCK0(getPossibleMoves, std::vector<Move>(), override);
     MAKE_MOCK1(move, void(Move move), override);
     MAKE_CONST_MOCK0(getTurn, Color(), override);
     MAKE_MOCK1(setTurn, void(Color which), override);
     MAKE_CONST_MOCK0(getWinner, std::optional<Color>(), override);
+    MAKE_MOCK2(calculateBestMove, std::future<std::optional<Move>>(const std::chrono::milliseconds &quota,
+        std::function<void()> onFutureReady), override);
 
 
 private:

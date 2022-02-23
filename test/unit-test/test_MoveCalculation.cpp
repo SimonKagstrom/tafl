@@ -10,6 +10,18 @@ using namespace std::chrono_literals;
 
 SCENARIO("a board can calculate the best moves")
 {
+    auto doPlay = [](IBoard &board)
+    {
+        auto f = board.calculateBestMove(100ms, [](){});
+        f.wait();
+        auto m = f.get();
+        REQUIRE(m);
+
+        board.move(*m);
+
+        return board.getWinner();
+    };
+
     THEN("a board without pieces immediately return a future without moves")
     {
         const std::string noWinner =
@@ -29,9 +41,9 @@ SCENARIO("a board can calculate the best moves")
     {
         const std::string whiteInOne =
             " w b "
-            " w   "
+            " wb  "
             " k  b"
-            " b   "
+            "bb   "
             "   b ";
         auto b = parse(whiteInOne);
         b->board->setTurn(Color::White);
@@ -54,6 +66,31 @@ SCENARIO("a board can calculate the best moves")
 
             b->board->move(*move);
             REQUIRE(b->board->getWinner() == Color::White);
+        }
+    }
+
+    WHEN("black can win in two black moves")
+    {
+        const std::string blackInTwo =
+            "bw b "
+            "bk   "
+            "b   w"
+            " b   "
+            "     ";
+        auto b = parse(blackInTwo);
+        b->board->setTurn(Color::Black);
+
+        REQUIRE_FALSE(b->board->getWinner());
+
+        auto w0 = doPlay(*b->board);
+        auto w1 = doPlay(*b->board);
+        auto w2 = doPlay(*b->board);
+
+        AND_THEN("the calculation returns such a move")
+        {
+            REQUIRE_FALSE(w0);
+            REQUIRE_FALSE(w1);
+            REQUIRE(w2 == Color::Black);
         }
     }
 }

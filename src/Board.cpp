@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <future>
 
 #include "Board.hpp"
 
@@ -19,7 +20,7 @@ Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>> &pieces) :
     }
 }
 
-Board::Board(Board &other) :
+Board::Board(const Board &other) :
     m_dimensions(other.m_dimensions),
     m_turn(other.m_turn),
     m_pieces(other.m_pieces),
@@ -124,11 +125,8 @@ std::optional<Color> Board::getWinner() const
 std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::milliseconds &quota,
     std::function<void()> onFutureReady)
 {
-    struct MoveAndResults
-    {
-        Move move;
-        Board::PlayResult results;
-    };
+    const auto nThreads = 4u;
+
     auto possibleMoves = getPossibleMoves();
 
     std::promise<std::optional<Move>> p;
@@ -136,40 +134,58 @@ std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::mil
     if (possibleMoves.empty())
     {
         p.set_value(std::nullopt);
+        return p.get_future();
     }
-    else
+
+    auto nPerThread = possibleMoves.size() / nThreads;
+
+    std::vector<std::future<std::vector<MoveAndResults>>> threadFutures;
+    for (auto thr = 0u; thr < nThreads; thr++)
     {
-        std::vector<MoveAndResults> results;
-        for (auto &cur : possibleMoves)
+        std::vector<Move> threadMoves(possibleMoves.begin() + thr * nPerThread,
+            thr == nThreads - 1 ? possibleMoves.end() :
+            possibleMoves.begin() + (thr + 1) * nPerThread);
+
+        if (!threadMoves.empty())
         {
-            results.push_back({cur, Board::PlayResult()});
+            threadFutures.push_back(runSimulationInThread(quota, threadMoves));
         }
+    }
+    auto black = m_turn == Color::Black;
 
-        for (auto x = 0u; x < 100; x++)
+    return std::async(std::launch::async, [black, threadFutures = std::move(threadFutures)]() mutable
+    {
+        std::optional<Move> out;
+        std::vector<MoveAndResults> results;
+
+        for (auto &f : threadFutures)
         {
-            for (auto &cur : results)
-            {
-                auto b = Board(*this);
-                b.move(cur.move);
+            f.wait();
+            auto r = f.get();
 
-                cur.results = cur.results + b.simulate();
+            for (auto &cur : r)
+            {
+                // Only care about valid values
+                if (cur.results.samples)
+                {
+                    results.push_back(cur);
+                }
             }
         }
 
-        auto black = m_turn == Color::Black;
         std::sort(results.begin(), results.end(), [black](const MoveAndResults &a, const MoveAndResults &b)
         {
             if (black)
             {
-                return a.results.blackWins > b.results.blackWins;
+                return float(a.results.blackWins) / a.results.samples > float(b.results.blackWins) / b.results.samples;
             }
-            return a.results.whiteWins > b.results.whiteWins;
+            return float(a.results.whiteWins) / a.results.samples > float(b.results.whiteWins) / b.results.samples;
         });
 
-        p.set_value(results[0].move);
-    }
+        out = results[0].move;
 
-    return p.get_future();
+        return out;
+    });
 }
 
 void Board::scanCaptures()
@@ -246,6 +262,37 @@ std::vector<Move> Board::getPossibleMoves() const
     return possibleMoves;
 }
 
+std::future<std::vector<Board::MoveAndResults>> Board::runSimulationInThread(const std::chrono::milliseconds &quota,
+    const std::vector<Move> &movesToSimulate)
+{
+    auto bIn = Board(*this);
+    return std::async(std::launch::async, [bIn, movesToSimulate, quota]
+    {
+        std::vector<Board::MoveAndResults> out;
+        out.resize(movesToSimulate.size());
+
+        for (auto i = 0u; i < movesToSimulate.size(); i++)
+        {
+            out[i].move = movesToSimulate[i];
+        }
+
+        auto start = std::chrono::steady_clock::now();
+        while (std::chrono::steady_clock::now() - start < quota)
+        {
+            for (auto x = 0u; x < 50; x++)
+            {
+                for (auto i = 0u; i < movesToSimulate.size(); i++)
+                {
+                    auto b = bIn;
+                    b.move(out[i].move);
+                    out[i].results = out[i].results + b.simulate();
+                }
+            }
+        }
+
+        return out;
+    });
+}
 
 Board::PlayResult Board::simulate()
 {

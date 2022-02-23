@@ -35,25 +35,37 @@ private:
     {
         unsigned whiteWins{0};
         unsigned blackWins{0};
+        unsigned samples{0};
 
         PlayResult operator+(const std::optional<Color> &result)
         {
             return {whiteWins + (result.value() == Color::White),
-                    blackWins + (result.value() == Color::Black)};
+                    blackWins + (result.value() == Color::Black),
+                    samples + 1};
         }
 
         PlayResult operator+(const PlayResult &other)
         {
             return {whiteWins + other.whiteWins,
-                    blackWins + other.blackWins};
+                    blackWins + other.blackWins,
+                    samples + 1};
         }
     };
 
-    Board(Board &);
+    struct MoveAndResults
+    {
+        Move move;
+        PlayResult results;
+    };
+ 
+    Board(const Board &);
 
     void scanCaptures();
 
     std::optional<Color> pieceColorAt(const Pos &pos) const;
+
+    std::future<std::vector<MoveAndResults>> runSimulationInThread(const std::chrono::milliseconds &quota,
+        const std::vector<Move> &movesToSimulate);
 
     /*
      * Run random moves until a winner is found.

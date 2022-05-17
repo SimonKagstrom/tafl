@@ -8,6 +8,8 @@
 
 #include "Board.hpp"
 
+#include <cassert>
+
 using namespace tafl;
 
 Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>> &pieces) :

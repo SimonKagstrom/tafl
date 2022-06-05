@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <future>
+#include <ranges>
 
 #include "Board.hpp"
 
@@ -51,14 +52,14 @@ std::optional<Piece::Type> Board::pieceAt(const Pos &pos) const
 const std::vector<Piece> Board::getPieces(const Color &which) const
 {
     std::vector<Piece> out;
-
-    for (auto &[k, v] : m_pieces)
-    {
-        if (v.getColor() == which)
+    std::ranges::copy(
+        m_pieces
+        | std::views::values
+        | std::views::filter([which](const Piece &cur)
         {
-            out.push_back(v);
-        }
-    }
+            return cur.getColor() == which;
+        }),
+        std::back_inserter(out));
 
     return out;
 }

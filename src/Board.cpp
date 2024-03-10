@@ -266,30 +266,32 @@ std::vector<Move> Board::getPossibleMoves() const
 }
 
 std::future<std::vector<Board::MoveAndResults>> Board::runSimulationInThread(const std::chrono::milliseconds &quota,
-    const std::vector<Move> &movesToSimulate)
+    std::span<const Move> movesToSimulate)
 {
     auto bIn = Board(*this);
-    return std::async(std::launch::async, [bIn, movesToSimulate, quota]
-    {
-        std::vector<Board::MoveAndResults> out;
-        out.resize(movesToSimulate.size());
 
-        for (auto i = 0u; i < movesToSimulate.size(); i++)
+    auto moves = std::vector<Move>(movesToSimulate.begin(), movesToSimulate.end());
+
+    return std::async(std::launch::async, [bIn, moves, quota]
+    {
+        // Create an output vector
+        auto out = std::vector<Board::MoveAndResults>();
+        out.reserve(moves.size());
+
+        auto v = std::views::transform(moves, [](auto&& move)
         {
-            out[i].move = movesToSimulate[i];
-        }
+            return Board::MoveAndResults{move, Board::PlayResult()};
+        });
+        std::ranges::copy(v, std::back_inserter(out));
 
         auto start = std::chrono::steady_clock::now();
         while (std::chrono::steady_clock::now() - start < quota)
         {
-            for (auto x = 0u; x < 50; x++)
+            for (auto &cur : out)
             {
-                for (auto i = 0u; i < movesToSimulate.size(); i++)
-                {
-                    auto b = bIn;
-                    b.move(out[i].move);
-                    out[i].results = out[i].results + b.simulate();
-                }
+                auto b = bIn;
+                b.move(cur.move);
+                cur.results = cur.results + b.simulate();
             }
         }
 

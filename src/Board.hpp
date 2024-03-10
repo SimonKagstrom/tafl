@@ -65,7 +65,7 @@ private:
     std::optional<Color> pieceColorAt(const Pos &pos) const;
 
     std::future<std::vector<MoveAndResults>> runSimulationInThread(const std::chrono::milliseconds &quota,
-        const std::vector<Move> &movesToSimulate);
+        std::span<const Move> movesToSimulate);
 
     /*
      * Run random moves until a winner is found.

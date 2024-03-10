@@ -2,14 +2,16 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 enable_testing()
 
+find_package(doctest REQUIRED)
+find_package(fmt REQUIRED)
+find_package(trompeloeil REQUIRED)
+
 add_compile_options(-fsanitize=address,undefined -g)
 add_link_options(-fsanitize=address,undefined -g)
 
 
 include_directories(
     ../../include/
-    Catch2/single_include
-    trompeloeil/include
 )
 
 add_executable(ut
@@ -24,8 +26,10 @@ add_executable(ut
     test_Pos.cpp
 )
 
-#target_link_libraries(ut
-#    PRIVATE nlohmann_json
-#)
+target_link_libraries(ut
+PRIVATE
+    trompeloeil::trompeloeil
+    doctest::doctest
+)
 
 set_property(TARGET ut PROPERTY CXX_STANDARD 20)

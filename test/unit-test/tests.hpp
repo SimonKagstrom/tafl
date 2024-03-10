@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catch2/catch.hpp>
-#include <trompeloeil.hpp>
+#include <doctest/doctest.h>
+#include <doctest/trompeloeil.hpp>
 
 using trompeloeil::_;

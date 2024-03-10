@@ -142,39 +142,32 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
         return p.get_future();
     }
 
-    auto nPerThread = possibleMoves.size() / nThreads;
-
     std::vector<std::future<std::vector<MoveAndResults>>> threadFutures;
     for (auto thr = 0u; thr < nThreads; thr++)
     {
-        std::vector<Move> threadMoves(possibleMoves.begin() + thr * nPerThread,
-                                      thr == nThreads - 1
-                                          ? possibleMoves.end()
-                                          : possibleMoves.begin() + (thr + 1) * nPerThread);
-
-        if (!threadMoves.empty())
-        {
-            threadFutures.push_back(runSimulationInThread(quota, threadMoves));
-        }
+        threadFutures.push_back(runSimulationInThread(quota, possibleMoves));
     }
     auto black = m_turn == Color::Black;
 
+    const auto number_of_moves = possibleMoves.size();
     return std::async(std::launch::async,
-                      [black, threadFutures = std::move(threadFutures)]() mutable {
+                      [black, number_of_moves, threadFutures = std::move(threadFutures)]() mutable {
                           std::optional<Move> out;
                           std::vector<MoveAndResults> results;
+                          results.resize(number_of_moves);
 
                           for (auto& f : threadFutures)
                           {
                               f.wait();
                               auto r = f.get();
 
-                              for (auto& cur : r)
+                              for (auto i = 0; i < number_of_moves; i++)
                               {
+                                  results[i].move = r[i].move;
                                   // Only care about valid values
-                                  if (cur.results.samples)
+                                  if (r[i].results.samples)
                                   {
-                                      results.push_back(cur);
+                                      results[i].results = results[i].results + r[i].results;
                                   }
                               }
                           }
@@ -289,9 +282,8 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
         auto out = std::vector<Board::MoveAndResults>();
         out.reserve(moves.size());
 
-        auto v = std::views::transform(moves, [](auto&& move) {
-            return Board::MoveAndResults {move, Board::PlayResult()};
-        });
+        auto v = std::views::transform(
+            moves, [](auto&& move) { return Board::MoveAndResults {move, Board::PlayResult()}; });
         std::ranges::copy(v, std::back_inserter(out));
 
         auto start = std::chrono::steady_clock::now();

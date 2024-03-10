@@ -48,7 +48,8 @@ private:
 
         PlayResult operator+(const PlayResult& other) const
         {
-            return {whiteWins + other.whiteWins, blackWins + other.blackWins, samples + 1};
+            return {
+                whiteWins + other.whiteWins, blackWins + other.blackWins, samples + other.samples};
         }
     };
 

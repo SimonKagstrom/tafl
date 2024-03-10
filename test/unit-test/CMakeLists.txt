@@ -2,8 +2,8 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 enable_testing()
 
-add_compile_options(-fsanitize=address,undefined)
-add_link_options(-fsanitize=address,undefined)
+add_compile_options(-fsanitize=address,undefined -g)
+add_link_options(-fsanitize=address,undefined -g)
 
 
 include_directories(

@@ -8,13 +8,10 @@ namespace
 class MoveTrait : public IMoveTrait
 {
 public:
-    MoveTrait()
-    {
-    }
+    MoveTrait() = default;
 
     std::vector<Move> getMoves(const IBoard &board, const Piece &piece) override
     {
-        auto dim = board.getBoardDimension();
         auto pos = piece.getPosition();
         std::vector<Move> out;
 
@@ -50,7 +47,7 @@ private:
         auto dim = board.getBoardDimension();
 
         auto nextX = pos.x + dir * isX;
-        auto nextY = pos.y + dir * !isX;
+        auto nextY = pos.y + dir * static_cast<int>(!isX);
 
         if (nextX >= dim)
         {

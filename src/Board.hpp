@@ -15,7 +15,7 @@ public:
 
     std::optional<Piece::Type> pieceAt(const Pos &pos) const override;
 
-    const std::vector<Piece> getPieces(const Color &which) const override;
+    std::vector<Piece> getPieces(const Color &which) const override;
 
     std::vector<Move> getPossibleMoves() const override;
 
@@ -37,14 +37,14 @@ private:
         unsigned blackWins{0};
         unsigned samples{0};
 
-        PlayResult operator+(const std::optional<Color> &result)
+        PlayResult operator+(const std::optional<Color> &result) const
         {
-            return {whiteWins + (result.value() == Color::White),
-                    blackWins + (result.value() == Color::Black),
+            return {whiteWins + static_cast<unsigned>(result.value() == Color::White),
+                    blackWins + static_cast<unsigned>(result.value() == Color::Black),
                     samples + 1};
         }
 
-        PlayResult operator+(const PlayResult &other)
+        PlayResult operator+(const PlayResult &other) const
         {
             return {whiteWins + other.whiteWins,
                     blackWins + other.blackWins,

@@ -18,15 +18,13 @@ namespace tafl
 class IBoard
 {
 public:
-    virtual ~IBoard()
-    {
-    }
+    virtual ~IBoard() = default;
 
     virtual unsigned getBoardDimension() const = 0;
 
     virtual std::optional<Piece::Type> pieceAt(const Pos &pos) const = 0;
 
-    virtual const std::vector<Piece> getPieces(const Color &which) const = 0;
+    virtual std::vector<Piece> getPieces(const Color &which) const = 0;
 
     virtual std::vector<Move> getPossibleMoves() const = 0;
 
@@ -57,7 +55,7 @@ public:
         std::function<void()> onFutureReady) = 0;
 
 
-    static std::unique_ptr<IBoard> fromString(const std::string &s);
+    static std::unique_ptr<IBoard> fromString(const std::string_view &s);
 };
 
 }

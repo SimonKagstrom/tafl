@@ -49,7 +49,7 @@ std::optional<Piece::Type> Board::pieceAt(const Pos &pos) const
     return it->second.getType();
 }
 
-const std::vector<Piece> Board::getPieces(const Color &which) const
+std::vector<Piece> Board::getPieces(const Color &which) const
 {
     std::vector<Piece> out;
     std::ranges::copy(
@@ -323,7 +323,7 @@ Board::PlayResult Board::simulate()
 }
 
 
-std::unique_ptr<IBoard> IBoard::fromString(const std::string &s)
+std::unique_ptr<IBoard> IBoard::fromString(const std::string_view &s)
 {
     if (s.size() < 2)
     {

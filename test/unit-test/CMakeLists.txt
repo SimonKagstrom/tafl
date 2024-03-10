@@ -23,4 +23,9 @@ add_executable(ut
     test_Piece.cpp
     test_Pos.cpp
 )
+
+#target_link_libraries(ut
+#    PRIVATE nlohmann_json
+#)
+
 set_property(TARGET ut PROPERTY CXX_STANDARD 20)

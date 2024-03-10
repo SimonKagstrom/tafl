@@ -1,6 +1,6 @@
-#include <Piece.hpp>
-
 #include "tests.hpp"
+
+#include <Piece.hpp>
 
 using namespace tafl;
 
@@ -39,7 +39,7 @@ SCENARIO("a piece can be created from a char")
 
             REQUIRE(white->getColor() == Color::White);
             REQUIRE(black->getColor() == Color::Black);
-            REQUIRE(king->getColor() ==Color::White);
+            REQUIRE(king->getColor() == Color::White);
         }
     }
 }

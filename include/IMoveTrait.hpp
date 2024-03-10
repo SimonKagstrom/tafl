@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Move.hpp"
 #include "IBoard.hpp"
+#include "Move.hpp"
 
 #include <vector>
 
@@ -23,10 +23,10 @@ public:
      *
      * @return the set of possible moves
      */
-    virtual std::vector<Move> getMoves(const IBoard &board, const Piece &piece) = 0;
+    virtual std::vector<Move> getMoves(const IBoard& board, const Piece& piece) = 0;
 
 
     static std::unique_ptr<IMoveTrait> create();
 };
 
-}
+} // namespace tafl

@@ -1,7 +1,7 @@
-#include <IBoard.hpp>
-
-#include "tests.hpp"
 #include "BoardHelper.hpp"
+#include "tests.hpp"
+
+#include <IBoard.hpp>
 
 using namespace tafl;
 using namespace tafl::ut;
@@ -10,9 +10,8 @@ using namespace std::chrono_literals;
 
 SCENARIO("a board can calculate the best moves")
 {
-    auto doPlay = [](IBoard &board)
-    {
-        auto f = board.calculateBestMove(100ms, [](){});
+    auto doPlay = [](IBoard& board) {
+        auto f = board.calculateBestMove(100ms, []() {});
         f.wait();
         auto m = f.get();
         REQUIRE(m);
@@ -24,38 +23,36 @@ SCENARIO("a board can calculate the best moves")
 
     THEN("a board without pieces immediately return a future without moves")
     {
-        const std::string noWinner =
-            "     "
-            "     "
-            "     "
-            "     "
-            "     ";
+        const std::string noWinner = "     "
+                                     "     "
+                                     "     "
+                                     "     "
+                                     "     ";
         auto b = parse(noWinner);
 
-        auto f = b->board->calculateBestMove(100ms, [](){});
+        auto f = b->board->calculateBestMove(100ms, []() {});
         REQUIRE(f.valid());
         REQUIRE(f.get() == std::nullopt);
     }
 
     WHEN("white can win in one move")
     {
-        const std::string whiteInOne =
-            " w b "
-            " wb  "
-            " k  b"
-            "bb   "
-            "   b ";
+        const std::string whiteInOne = " w b "
+                                       " wb  "
+                                       " k  b"
+                                       "bb   "
+                                       "   b ";
         auto b = parse(whiteInOne);
         b->board->setTurn(Color::White);
 
-        REQUIRE(b->board->pieceAt({1,0}));
+        REQUIRE(b->board->pieceAt({1, 0}));
 
         REQUIRE_FALSE(b->board->getWinner());
 
-        auto f = b->board->calculateBestMove(100ms, [](){});
+        auto f = b->board->calculateBestMove(100ms, []() {});
         THEN("a calculation must be done")
         {
-//            REQUIRE_FALSE(f.valid());
+            //            REQUIRE_FALSE(f.valid());
         }
 
         AND_THEN("the calculation returns such a move")
@@ -71,12 +68,11 @@ SCENARIO("a board can calculate the best moves")
 
     WHEN("black can win in two black moves")
     {
-        const std::string blackInTwo =
-            "bw b "
-            "bk   "
-            "b   w"
-            " b   "
-            "     ";
+        const std::string blackInTwo = "bw b "
+                                       "bk   "
+                                       "b   w"
+                                       " b   "
+                                       "     ";
         auto b = parse(blackInTwo);
         b->board->setTurn(Color::Black);
 

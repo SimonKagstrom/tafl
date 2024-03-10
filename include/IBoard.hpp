@@ -1,16 +1,15 @@
 #pragma once
 
-#include "Piece.hpp"
-#include "Move.hpp"
 #include "Color.hpp"
+#include "Move.hpp"
+#include "Piece.hpp"
 
-#include <string>
+#include <chrono>
+#include <future>
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
-
-#include <future>
-#include <chrono>
 
 namespace tafl
 {
@@ -22,9 +21,9 @@ public:
 
     virtual unsigned getBoardDimension() const = 0;
 
-    virtual std::optional<Piece::Type> pieceAt(const Pos &pos) const = 0;
+    virtual std::optional<Piece::Type> pieceAt(const Pos& pos) const = 0;
 
-    virtual std::vector<Piece> getPieces(const Color &which) const = 0;
+    virtual std::vector<Piece> getPieces(const Color& which) const = 0;
 
     virtual std::vector<Move> getPossibleMoves() const = 0;
 
@@ -51,11 +50,12 @@ public:
      *
      * @return a future which notifies of the best move available for this board (or std::nullopt, if there are none)
      */
-    virtual std::future<std::optional<Move>> calculateBestMove(const std::chrono::milliseconds &quota,
-        std::function<void()> onFutureReady) = 0;
+    virtual std::future<std::optional<Move>>
+    calculateBestMove(const std::chrono::milliseconds& quota,
+                      std::function<void()> onFutureReady) = 0;
 
 
-    static std::unique_ptr<IBoard> fromString(const std::string_view &s);
+    static std::unique_ptr<IBoard> fromString(const std::string_view& s);
 };
 
-}
+} // namespace tafl

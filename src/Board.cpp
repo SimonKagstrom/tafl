@@ -1,43 +1,44 @@
 
-#include <IBoard.hpp>
-#include <cmath>
-#include <vector>
-#include <map>
-#include <set>
-#include <future>
-#include <ranges>
-
 #include "Board.hpp"
 
+#include <IBoard.hpp>
 #include <cassert>
+#include <cmath>
+#include <future>
+#include <map>
+#include <ranges>
+#include <set>
+#include <vector>
 
 using namespace tafl;
 
-Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>> &pieces) :
-    m_dimensions(dimensions),
-    m_moveTrait(IMoveTrait::create())
+Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>>& pieces)
+    : m_dimensions(dimensions)
+    , m_moveTrait(IMoveTrait::create())
 {
-    for (auto &p : pieces)
+    for (auto& p : pieces)
     {
         m_pieces.emplace(p->getPosition(), *p);
     }
 }
 
-Board::Board(const Board &other) :
-    m_dimensions(other.m_dimensions),
-    m_turn(other.m_turn),
-    m_pieces(other.m_pieces),
-    m_moveTrait(IMoveTrait::create())
+Board::Board(const Board& other)
+    : m_dimensions(other.m_dimensions)
+    , m_turn(other.m_turn)
+    , m_pieces(other.m_pieces)
+    , m_moveTrait(IMoveTrait::create())
 {
 }
 
-unsigned Board::getBoardDimension() const
+unsigned
+Board::getBoardDimension() const
 {
     return m_dimensions;
 }
 
 
-std::optional<Piece::Type> Board::pieceAt(const Pos &pos) const
+std::optional<Piece::Type>
+Board::pieceAt(const Pos& pos) const
 {
     auto it = m_pieces.find(pos);
 
@@ -49,22 +50,20 @@ std::optional<Piece::Type> Board::pieceAt(const Pos &pos) const
     return it->second.getType();
 }
 
-std::vector<Piece> Board::getPieces(const Color &which) const
+std::vector<Piece>
+Board::getPieces(const Color& which) const
 {
     std::vector<Piece> out;
-    std::ranges::copy(
-        m_pieces
-        | std::views::values
-        | std::views::filter([which](const Piece &cur)
-        {
-            return cur.getColor() == which;
-        }),
-        std::back_inserter(out));
+    std::ranges::copy(m_pieces | std::views::values | std::views::filter([which](const Piece& cur) {
+                          return cur.getColor() == which;
+                      }),
+                      std::back_inserter(out));
 
     return out;
 }
 
-void Board::move(Move move)
+void
+Board::move(Move move)
 {
     if (!pieceAt(move.from))
     {
@@ -91,22 +90,25 @@ void Board::move(Move move)
     setTurn(!m_turn);
 }
 
-Color Board::getTurn() const
+Color
+Board::getTurn() const
 {
     return m_turn;
 }
 
-void Board::setTurn(Color which)
+void
+Board::setTurn(Color which)
 {
     m_turn = which;
 }
 
-std::optional<Color> Board::getWinner() const
+std::optional<Color>
+Board::getWinner() const
 {
-    auto itKing = std::find_if(m_pieces.begin(), m_pieces.end(), [](const std::pair<Pos, Piece> &cur)
-    {
-        return cur.second.getType() == Piece::Type::King;
-    });
+    auto itKing =
+        std::find_if(m_pieces.begin(), m_pieces.end(), [](const std::pair<Pos, Piece>& cur) {
+            return cur.second.getType() == Piece::Type::King;
+        });
 
     if (itKing == m_pieces.end())
     {
@@ -116,8 +118,7 @@ std::optional<Color> Board::getWinner() const
     const auto dim = getBoardDimension();
     auto kingPos = itKing->first;
 
-    if (kingPos.x == 0 || kingPos.x == dim - 1 ||
-        kingPos.y == 0 || kingPos.y == dim - 1)
+    if (kingPos.x == 0 || kingPos.x == dim - 1 || kingPos.y == 0 || kingPos.y == dim - 1)
     {
         return Color::White;
     }
@@ -125,8 +126,9 @@ std::optional<Color> Board::getWinner() const
     return std::nullopt;
 }
 
-std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::milliseconds &quota,
-    std::function<void()> onFutureReady)
+std::future<std::optional<Move>>
+Board::calculateBestMove(const std::chrono::milliseconds& quota,
+                         std::function<void()> onFutureReady)
 {
     const auto nThreads = 4u;
 
@@ -146,8 +148,9 @@ std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::mil
     for (auto thr = 0u; thr < nThreads; thr++)
     {
         std::vector<Move> threadMoves(possibleMoves.begin() + thr * nPerThread,
-            thr == nThreads - 1 ? possibleMoves.end() :
-            possibleMoves.begin() + (thr + 1) * nPerThread);
+                                      thr == nThreads - 1
+                                          ? possibleMoves.end()
+                                          : possibleMoves.begin() + (thr + 1) * nPerThread);
 
         if (!threadMoves.empty())
         {
@@ -156,48 +159,52 @@ std::future<std::optional<Move>> Board::calculateBestMove(const std::chrono::mil
     }
     auto black = m_turn == Color::Black;
 
-    return std::async(std::launch::async, [black, threadFutures = std::move(threadFutures)]() mutable
-    {
-        std::optional<Move> out;
-        std::vector<MoveAndResults> results;
+    return std::async(std::launch::async,
+                      [black, threadFutures = std::move(threadFutures)]() mutable {
+                          std::optional<Move> out;
+                          std::vector<MoveAndResults> results;
 
-        for (auto &f : threadFutures)
-        {
-            f.wait();
-            auto r = f.get();
+                          for (auto& f : threadFutures)
+                          {
+                              f.wait();
+                              auto r = f.get();
 
-            for (auto &cur : r)
-            {
-                // Only care about valid values
-                if (cur.results.samples)
-                {
-                    results.push_back(cur);
-                }
-            }
-        }
+                              for (auto& cur : r)
+                              {
+                                  // Only care about valid values
+                                  if (cur.results.samples)
+                                  {
+                                      results.push_back(cur);
+                                  }
+                              }
+                          }
 
-        std::sort(results.begin(), results.end(), [black](const MoveAndResults &a, const MoveAndResults &b)
-        {
-            if (black)
-            {
-                return float(a.results.blackWins) / a.results.samples > float(b.results.blackWins) / b.results.samples;
-            }
-            return float(a.results.whiteWins) / a.results.samples > float(b.results.whiteWins) / b.results.samples;
-        });
+                          std::sort(results.begin(),
+                                    results.end(),
+                                    [black](const MoveAndResults& a, const MoveAndResults& b) {
+                                        if (black)
+                                        {
+                                            return float(a.results.blackWins) / a.results.samples >
+                                                   float(b.results.blackWins) / b.results.samples;
+                                        }
+                                        return float(a.results.whiteWins) / a.results.samples >
+                                               float(b.results.whiteWins) / b.results.samples;
+                                    });
 
-        out = results[0].move;
+                          out = results[0].move;
 
-        return out;
-    });
+                          return out;
+                      });
 }
 
-void Board::scanCaptures()
+void
+Board::scanCaptures()
 {
     std::set<Pos> captures;
 
     auto dim = getBoardDimension();
 
-    for (auto &[pos, piece] : m_pieces)
+    for (auto& [pos, piece] : m_pieces)
     {
         if (piece.getColor() == m_turn)
         {
@@ -207,12 +214,14 @@ void Board::scanCaptures()
         auto above = pieceColorAt(pos.above());
         auto below = pieceColorAt(pos.below());
         auto right = pieceColorAt(pos.right());
-        auto left  = pieceColorAt(pos.left());
+        auto left = pieceColorAt(pos.left());
 
-        auto verticalEnemies = above && below && *above != piece.getColor() && *below != piece.getColor();
-        auto horizontalEnemies = left && right && *left != piece.getColor() && *right != piece.getColor();
+        auto verticalEnemies =
+            above && below && *above != piece.getColor() && *below != piece.getColor();
+        auto horizontalEnemies =
+            left && right && *left != piece.getColor() && *right != piece.getColor();
 
-        if (piece.getType() == Piece::Type::King && pos == Pos{dim/2, dim/2})
+        if (piece.getType() == Piece::Type::King && pos == Pos {dim / 2, dim / 2})
         {
             // The king in the castle - all 4 sides must be occupied
             if (verticalEnemies && horizontalEnemies)
@@ -229,13 +238,14 @@ void Board::scanCaptures()
         }
     }
 
-    for (auto &toErase : captures)
+    for (auto& toErase : captures)
     {
         m_pieces.erase(toErase);
     }
 }
 
-std::optional<Color> Board::pieceColorAt(const Pos &pos) const
+std::optional<Color>
+Board::pieceColorAt(const Pos& pos) const
 {
     auto it = m_pieces.find(pos);
 
@@ -247,11 +257,12 @@ std::optional<Color> Board::pieceColorAt(const Pos &pos) const
     return it->second.getColor();
 }
 
-std::vector<Move> Board::getPossibleMoves() const
+std::vector<Move>
+Board::getPossibleMoves() const
 {
     std::vector<Move> possibleMoves;
 
-    for (auto &[pos, piece] : m_pieces)
+    for (auto& [pos, piece] : m_pieces)
     {
         if (piece.getColor() != m_turn)
         {
@@ -265,29 +276,28 @@ std::vector<Move> Board::getPossibleMoves() const
     return possibleMoves;
 }
 
-std::future<std::vector<Board::MoveAndResults>> Board::runSimulationInThread(const std::chrono::milliseconds &quota,
-    std::span<const Move> movesToSimulate)
+std::future<std::vector<Board::MoveAndResults>>
+Board::runSimulationInThread(const std::chrono::milliseconds& quota,
+                             std::span<const Move> movesToSimulate)
 {
     auto bIn = Board(*this);
 
     auto moves = std::vector<Move>(movesToSimulate.begin(), movesToSimulate.end());
 
-    return std::async(std::launch::async, [bIn, moves, quota]
-    {
+    return std::async(std::launch::async, [bIn, moves, quota] {
         // Create an output vector
         auto out = std::vector<Board::MoveAndResults>();
         out.reserve(moves.size());
 
-        auto v = std::views::transform(moves, [](auto&& move)
-        {
-            return Board::MoveAndResults{move, Board::PlayResult()};
+        auto v = std::views::transform(moves, [](auto&& move) {
+            return Board::MoveAndResults {move, Board::PlayResult()};
         });
         std::ranges::copy(v, std::back_inserter(out));
 
         auto start = std::chrono::steady_clock::now();
         while (std::chrono::steady_clock::now() - start < quota)
         {
-            for (auto &cur : out)
+            for (auto& cur : out)
             {
                 auto b = bIn;
                 b.move(cur.move);
@@ -299,7 +309,8 @@ std::future<std::vector<Board::MoveAndResults>> Board::runSimulationInThread(con
     });
 }
 
-Board::PlayResult Board::simulate()
+Board::PlayResult
+Board::simulate()
 {
     while (true)
     {
@@ -325,7 +336,8 @@ Board::PlayResult Board::simulate()
 }
 
 
-std::unique_ptr<IBoard> IBoard::fromString(const std::string_view &s)
+std::unique_ptr<IBoard>
+IBoard::fromString(const std::string_view& s)
 {
     if (s.size() < 2)
     {
@@ -356,7 +368,7 @@ std::unique_ptr<IBoard> IBoard::fromString(const std::string_view &s)
         auto p = Piece::fromChar(c);
         if (p)
         {
-            p->place({x,y});
+            p->place({x, y});
             pieces.push_back(std::move(p));
         }
     }

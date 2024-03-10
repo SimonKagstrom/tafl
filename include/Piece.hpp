@@ -1,9 +1,9 @@
 #pragma once
 
-#include <memory>
+#include "Pos.hpp"
 
 #include <Color.hpp>
-#include "Pos.hpp"
+#include <memory>
 
 namespace tafl
 {
@@ -20,13 +20,13 @@ public:
 
     Piece(Piece::Type which);
 
-    Piece(const Piece &) = default;
+    Piece(const Piece&) = default;
 
     virtual ~Piece()
     {
     }
 
-    virtual void place(const Pos &pos);
+    virtual void place(const Pos& pos);
 
     virtual Pos getPosition() const;
 
@@ -42,4 +42,4 @@ protected:
     Pos m_pos;
 };
 
-}
+} // namespace tafl

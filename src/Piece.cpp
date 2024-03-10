@@ -2,27 +2,31 @@
 
 using namespace tafl;
 
-Piece::Piece(Piece::Type which) :
-    m_type(which)
+Piece::Piece(Piece::Type which)
+    : m_type(which)
 {
 }
 
-void Piece::place(const Pos &where)
+void
+Piece::place(const Pos& where)
 {
     m_pos = where;
 }
 
-Pos Piece::getPosition() const
+Pos
+Piece::getPosition() const
 {
     return m_pos;
 }
 
-Piece::Type Piece::getType() const
+Piece::Type
+Piece::getType() const
 {
     return m_type;
 }
 
-Color Piece::getColor() const
+Color
+Piece::getColor() const
 {
     if (m_type == Piece::Type::Black)
     {
@@ -32,9 +36,10 @@ Color Piece::getColor() const
     return Color::White;
 }
 
-std::unique_ptr<Piece> Piece::fromChar(char c)
+std::unique_ptr<Piece>
+Piece::fromChar(char c)
 {
-    switch(tolower(c))
+    switch (tolower(c))
     {
     case 'w':
         return std::make_unique<Piece>(Piece::Type::White);

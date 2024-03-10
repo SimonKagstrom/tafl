@@ -1,8 +1,7 @@
-#include <IMoveTrait.hpp>
-
 #include "mocks/MockBoard.hpp"
 #include "tests.hpp"
 
+#include <IMoveTrait.hpp>
 #include <set>
 
 using namespace tafl;
@@ -10,7 +9,8 @@ using namespace tafl;
 namespace
 {
 
-std::set<Pos> toPosSet(const std::vector<Move> &moves)
+std::set<Pos>
+toPosSet(const std::vector<Move>& moves)
 {
     std::set<Pos> out;
     for (auto x : moves)
@@ -21,7 +21,7 @@ std::set<Pos> toPosSet(const std::vector<Move> &moves)
     return out;
 }
 
-}
+} // namespace
 
 SCENARIO("Moves can be caluclated correctly")
 {
@@ -34,9 +34,9 @@ SCENARIO("Moves can be caluclated correctly")
     auto pTopLeft = Piece::fromChar('b');
     auto pMiddleRight = Piece::fromChar('k');
 
-    pMiddle->place({1,1});
-    pTopLeft->place({0,0});
-    pMiddleRight->place({2,1});
+    pMiddle->place({1, 1});
+    pTopLeft->place({0, 0});
+    pMiddleRight->place({2, 1});
 
     GIVEN("an empty board")
     {
@@ -46,10 +46,10 @@ SCENARIO("Moves can be caluclated correctly")
             auto posSet = toPosSet(x->getMoves(*mockBoard, *pMiddle));
 
             REQUIRE(posSet.size() == 4);
-            REQUIRE(posSet.find({1,0}) != posSet.end());
-            REQUIRE(posSet.find({1,2}) != posSet.end());
-            REQUIRE(posSet.find({0,1}) != posSet.end());
-            REQUIRE(posSet.find({2,1}) != posSet.end());
+            REQUIRE(posSet.find({1, 0}) != posSet.end());
+            REQUIRE(posSet.find({1, 2}) != posSet.end());
+            REQUIRE(posSet.find({0, 1}) != posSet.end());
+            REQUIRE(posSet.find({2, 1}) != posSet.end());
         }
 
         THEN("the top left piece can move down and right")
@@ -57,10 +57,10 @@ SCENARIO("Moves can be caluclated correctly")
             auto posSet = toPosSet(x->getMoves(*mockBoard, *pTopLeft));
 
             REQUIRE(posSet.size() == 4);
-            REQUIRE(posSet.find({1,0}) != posSet.end());
-            REQUIRE(posSet.find({2,0}) != posSet.end());
-            REQUIRE(posSet.find({0,1}) != posSet.end());
-            REQUIRE(posSet.find({0,2}) != posSet.end());
+            REQUIRE(posSet.find({1, 0}) != posSet.end());
+            REQUIRE(posSet.find({2, 0}) != posSet.end());
+            REQUIRE(posSet.find({0, 1}) != posSet.end());
+            REQUIRE(posSet.find({0, 2}) != posSet.end());
         }
 
         THEN("the middle right piece can't move to the center")
@@ -68,17 +68,17 @@ SCENARIO("Moves can be caluclated correctly")
             auto posSet = toPosSet(x->getMoves(*mockBoard, *pMiddleRight));
 
             REQUIRE(posSet.size() == 2);
-            REQUIRE(posSet.find({2,0}) != posSet.end());
-            REQUIRE(posSet.find({2,2}) != posSet.end());
+            REQUIRE(posSet.find({2, 0}) != posSet.end());
+            REQUIRE(posSet.find({2, 2}) != posSet.end());
         }
     }
 
     GIVEN("other pieces in all directions")
     {
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{1,0})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{1,2})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{0,1})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{2,1})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {1, 0})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {1, 2})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {0, 1})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {2, 1})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
 
         THEN("The middle pos can't move")
         {
@@ -90,16 +90,16 @@ SCENARIO("Moves can be caluclated correctly")
 
     GIVEN("other pieces up and right")
     {
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{1,0})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
-        REQUIRE_CALL(*mockBoard, pieceAt(Pos{1,2})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {1, 0})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
+        REQUIRE_CALL(*mockBoard, pieceAt(Pos {1, 2})).RETURN(Piece::Type::White).TIMES(AT_LEAST(1));
 
         THEN("The middle pos can move left and down")
         {
             auto posSet = toPosSet(x->getMoves(*mockBoard, *pMiddle));
 
             REQUIRE(posSet.size() == 2);
-            REQUIRE(posSet.find({0,1}) != posSet.end());
-            REQUIRE(posSet.find({2,1}) != posSet.end());
+            REQUIRE(posSet.find({0, 1}) != posSet.end());
+            REQUIRE(posSet.find({2, 1}) != posSet.end());
         }
     }
 }

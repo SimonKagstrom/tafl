@@ -9,7 +9,8 @@ enum class Color
     White,
 };
 
-constexpr Color operator!(const Color which)
+constexpr Color
+operator!(const Color which)
 {
     if (which == Color::Black)
     {
@@ -19,4 +20,4 @@ constexpr Color operator!(const Color which)
     return Color::Black;
 }
 
-}
+} // namespace tafl

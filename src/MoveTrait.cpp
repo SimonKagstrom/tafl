@@ -10,7 +10,7 @@ class MoveTrait : public IMoveTrait
 public:
     MoveTrait() = default;
 
-    std::vector<Move> getMoves(const IBoard &board, const Piece &piece) override
+    std::vector<Move> getMoves(const IBoard& board, const Piece& piece) override
     {
         auto pos = piece.getPosition();
         std::vector<Move> out;
@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    std::optional<Pos> nextPos(const IBoard &board, Pos &pos, int dir, int isX) const
+    std::optional<Pos> nextPos(const IBoard& board, Pos& pos, int dir, int isX) const
     {
         auto dim = board.getBoardDimension();
 
@@ -65,7 +65,7 @@ private:
         }
 
         // The middle spot? Forbidden
-        if (Pos{nextX, nextY} == Pos{dim/2, dim/2})
+        if (Pos {nextX, nextY} == Pos {dim / 2, dim / 2})
         {
             return {};
         }
@@ -75,21 +75,21 @@ private:
         return pos;
     }
 
-    std::optional<Pos> nextX(const IBoard &board, Pos &pos, int dir) const
+    std::optional<Pos> nextX(const IBoard& board, Pos& pos, int dir) const
     {
         return nextPos(board, pos, dir, 1);
     }
 
-    std::optional<Pos> nextY(const IBoard &board, Pos &pos, int dir) const
+    std::optional<Pos> nextY(const IBoard& board, Pos& pos, int dir) const
     {
         return nextPos(board, pos, dir, 0);
     }
-
 };
 
-}
+} // namespace
 
-std::unique_ptr<IMoveTrait> IMoveTrait::create()
+std::unique_ptr<IMoveTrait>
+IMoveTrait::create()
 {
     return std::make_unique<MoveTrait>();
 }

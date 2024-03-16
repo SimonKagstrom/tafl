@@ -36,6 +36,7 @@ public:
 
 
     static std::unique_ptr<Piece> fromChar(char c);
+    static char toChar(Type t);
 
 protected:
     Type m_type;

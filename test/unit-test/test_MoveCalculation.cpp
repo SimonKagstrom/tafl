@@ -8,18 +8,26 @@ using namespace tafl::ut;
 
 using namespace std::chrono_literals;
 
+namespace
+{
+
+auto
+doPlay(auto &board)
+{
+    auto f = board.calculateBestMove(100ms, []() {});
+    f.wait();
+    auto m = f.get();
+    REQUIRE(m);
+
+    board.move(*m);
+
+    return board.getWinner();
+};
+
+} // namespace
+
 SCENARIO("a board can calculate the best moves")
 {
-    auto doPlay = [](IBoard& board) {
-        auto f = board.calculateBestMove(100ms, []() {});
-        f.wait();
-        auto m = f.get();
-        REQUIRE(m);
-
-        board.move(*m);
-
-        return board.getWinner();
-    };
 
     THEN("a board without pieces immediately return a future without moves")
     {
@@ -87,6 +95,41 @@ SCENARIO("a board can calculate the best moves")
             REQUIRE_FALSE(w0);
             REQUIRE_FALSE(w1);
             REQUIRE(w2 == Color::Black);
+        }
+    }
+}
+
+SCENARIO("black can stop white from winning")
+{
+    WHEN("black is in a dire situation")
+    {
+        // Black must stop the king from moving down
+                                              //012345678
+        const std::string blackMustStopWhite = "    b w  "  // 0
+                                               "   wb    "  // 1
+                                               "      w  "  // 2
+                                               "b    w b "  // 3
+                                               "b  w  kbb"  // 4
+                                               "  b  w b "  // 5
+                                               "b w b    "  // 6
+                                               " b       "  // 7
+                                               " b b b  w"; // 8
+        auto b = parse(blackMustStopWhite);
+        b->board->setTurn(Color::Black);
+        IBoard::printBoard(*b->board);
+
+        REQUIRE_FALSE(b->board->getWinner());
+
+        auto b0 = doPlay(*b->board);
+        IBoard::printBoard(*b->board);
+        printf("White\n");
+        auto w0 = doPlay(*b->board);
+        IBoard::printBoard(*b->board);
+
+        AND_THEN("the calculation returns such a move")
+        {
+            REQUIRE(b0 == std::nullopt);
+            REQUIRE(w0 == std::nullopt);
         }
     }
 }

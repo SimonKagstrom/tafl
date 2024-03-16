@@ -14,6 +14,27 @@
 namespace tafl
 {
 
+/*
+ * Legend:
+ *   b : black piece
+ *   w : white piece
+ *   k : white king + castle
+ *
+ * For the unit tests, capitals are used to specify a specific piece.
+ */
+
+// 9x9
+static const std::string kTablut = "   bbb   "
+                                   "    b    "
+                                   "    w    "
+                                   "b   w   b"
+                                   "bbwwkwwbb"
+                                   "b   w   b"
+                                   "    w    "
+                                   "    b    "
+                                   "   bbb   ";
+
+
 class IBoard
 {
 public:
@@ -56,6 +77,8 @@ public:
 
 
     static std::unique_ptr<IBoard> fromString(const std::string_view& s);
+
+    static void printBoard(const IBoard& board);
 };
 
 } // namespace tafl

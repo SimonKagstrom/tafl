@@ -9,25 +9,6 @@ using namespace tafl::ut;
 
 namespace
 {
-/*
- * Legend:
- *   b : black piece
- *   w : white piece
- *   k : white king + castle
- *
- * For the unit tests, capitals are used to specify a specific piece.
- */
-
-// 9x9
-const std::string tablut = "   bbb   "
-                           "    b    "
-                           "    w    "
-                           "b   w   b"
-                           "bbwwkwwbb"
-                           "b   w   b"
-                           "    w    "
-                           "    b    "
-                           "   bbb   ";
 
 const std::string smallBoard = " w b "
                                " w   "
@@ -65,7 +46,7 @@ SCENARIO("A board is created from a string")
 {
     WHEN("an invalid string is used to create a board")
     {
-        auto unaligned = tablut.substr(0, tablut.size() - 1);
+        auto unaligned = kTablut.substr(0, kTablut.size() - 1);
 
         auto p0 = IBoard::fromString("");
         auto p1 = IBoard::fromString("s");
@@ -79,9 +60,9 @@ SCENARIO("A board is created from a string")
         }
     }
 
-    WHEN("a tablut board is given")
+    WHEN("a kTablut board is given")
     {
-        auto p = IBoard::fromString(tablut);
+        auto p = IBoard::fromString(kTablut);
 
         THEN("it can be created")
         {

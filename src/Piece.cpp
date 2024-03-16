@@ -53,3 +53,19 @@ Piece::fromChar(char c)
 
     return nullptr;
 }
+
+char
+Piece::toChar(Piece::Type t)
+{
+    switch (t)
+    {
+    case Piece::Type::White:
+        return 'w';
+    case Piece::Type::King:
+        return 'k';
+    case Piece::Type::Black:
+        return 'b';
+    }
+
+    return ' ';
+}

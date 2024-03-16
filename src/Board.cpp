@@ -4,6 +4,7 @@
 #include <IBoard.hpp>
 #include <cassert>
 #include <cmath>
+#include <fmt/format.h>
 #include <future>
 #include <map>
 #include <ranges>
@@ -130,7 +131,7 @@ std::future<std::optional<Move>>
 Board::calculateBestMove(const std::chrono::milliseconds& quota,
                          std::function<void()> onFutureReady)
 {
-    const auto nThreads = 4u;
+    const auto nThreads = 8u;
 
     auto possibleMoves = getPossibleMoves();
 
@@ -150,44 +151,54 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
     auto black = m_turn == Color::Black;
 
     const auto number_of_moves = possibleMoves.size();
-    return std::async(std::launch::async,
-                      [black, number_of_moves, threadFutures = std::move(threadFutures)]() mutable {
-                          std::optional<Move> out;
-                          std::vector<MoveAndResults> results;
-                          results.resize(number_of_moves);
+    return std::async(
+        std::launch::async,
+        [black, number_of_moves, threadFutures = std::move(threadFutures)]() mutable {
+            std::optional<Move> out;
+            std::vector<MoveAndResults> results;
+            results.resize(number_of_moves);
 
-                          for (auto& f : threadFutures)
-                          {
-                              f.wait();
-                              auto r = f.get();
+            for (auto& f : threadFutures)
+            {
+                f.wait();
+                auto r = f.get();
 
-                              for (auto i = 0; i < number_of_moves; i++)
-                              {
-                                  results[i].move = r[i].move;
-                                  // Only care about valid values
-                                  if (r[i].results.samples)
-                                  {
-                                      results[i].results = results[i].results + r[i].results;
-                                  }
-                              }
-                          }
+                for (auto i = 0; i < number_of_moves; i++)
+                {
+                    results[i].move = r[i].move;
+                    // Only care about valid values
+                    if (r[i].results.samples)
+                    {
+                        results[i].results = results[i].results + r[i].results;
+                    }
+                }
+            }
 
-                          std::sort(results.begin(),
-                                    results.end(),
-                                    [black](const MoveAndResults& a, const MoveAndResults& b) {
-                                        if (black)
-                                        {
-                                            return float(a.results.blackWins) / a.results.samples >
-                                                   float(b.results.blackWins) / b.results.samples;
-                                        }
-                                        return float(a.results.whiteWins) / a.results.samples >
-                                               float(b.results.whiteWins) / b.results.samples;
-                                    });
+            std::ranges::sort(results, [black](const MoveAndResults& a, const MoveAndResults& b) {
+                return black ? a.results.blackWins < b.results.blackWins
+                             : a.results.whiteWins < b.results.whiteWins;
+            });
 
-                          out = results[0].move;
+            for (auto x : results)
+            {
+                auto f = x.move.from;
+                auto t = x.move.to;
 
-                          return out;
-                      });
+                fmt::print("{}:{} -> {}:{}, leads to {:.1f}% black wins ({:.3f}:{:.3f} of {})\n",
+                           f.x,
+                           f.y,
+                           t.x,
+                           t.y,
+                           x.results.blackWins / x.results.samples * 100.0f,
+                           x.results.blackWins,
+                           x.results.whiteWins,
+                           x.results.samples);
+            }
+
+            out = results.back().move;
+
+            return out;
+        });
 }
 
 void
@@ -293,7 +304,7 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
             {
                 auto b = bIn;
                 b.move(cur.move);
-                cur.results = cur.results + b.simulate();
+                cur.results = cur.results + b.simulate(1);
             }
         }
 
@@ -302,7 +313,7 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
 }
 
 Board::PlayResult
-Board::simulate()
+Board::simulate(unsigned ply)
 {
     while (true)
     {
@@ -310,7 +321,7 @@ Board::simulate()
 
         if (winner)
         {
-            return Board::PlayResult() + winner;
+            return Board::PlayResult(*winner, ply);
         }
 
         auto possibleMoves = getPossibleMoves();
@@ -324,6 +335,7 @@ Board::simulate()
 
         auto m = possibleMoves[selected];
         move(m);
+        ply++;
     }
 }
 
@@ -366,4 +378,52 @@ IBoard::fromString(const std::string_view& s)
     }
 
     return std::make_unique<Board>(dimension, pieces);
+}
+
+void
+IBoard::printBoard(const IBoard& board)
+{
+    const auto dim = board.getBoardDimension();
+    fmt::print("   ");
+    for (auto x = 0u; x < dim; x++)
+    {
+        fmt::print("{} ", x);
+    }
+    fmt::print("\n");
+
+    for (auto y = 0u; y < dim; y++)
+    {
+        fmt::print("{}  ", y);
+        for (auto x = 0u; x < dim; x++)
+        {
+            auto p = board.pieceAt({x, y});
+            if (p)
+            {
+                fmt::print("{} ", Piece::toChar(*p));
+            }
+            else
+            {
+                fmt::print("  ");
+            }
+        }
+        fmt::print("\n");
+    }
+
+    constexpr auto black_at_start = 16;
+    constexpr auto white_at_start = 9;
+
+    auto black = board.getPieces(Color::Black);
+    auto white = board.getPieces(Color::White);
+
+    fmt::print("\n\nTaken pieces: ");
+    for (auto i = 0u; i < black_at_start - black.size(); i++)
+    {
+        fmt::print("b");
+    }
+    fmt::print(" ");
+    for (auto i = 0u; i < white_at_start - white.size(); i++)
+    {
+        fmt::print("w");
+    }
+    fmt::print("\n");
 }

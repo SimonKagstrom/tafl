@@ -35,20 +35,35 @@ public:
 private:
     struct PlayResult
     {
-        unsigned whiteWins {0};
-        unsigned blackWins {0};
+        double whiteWins {0};
+        double blackWins {0};
         unsigned samples {0};
 
-        PlayResult operator+(const std::optional<Color>& result) const
+        PlayResult() = default;
+
+        PlayResult(double w, double b, unsigned s)
+            : whiteWins {w}
+            , blackWins {b}
+            , samples {s}
         {
-            return {whiteWins + static_cast<unsigned>(result.value() == Color::White),
-                    blackWins + static_cast<unsigned>(result.value() == Color::Black),
-                    samples + 1};
+        }
+
+        PlayResult(Color win, unsigned ply)
+        {
+            if (win == Color::White)
+            {
+                whiteWins = 1.0 / ply;
+            }
+            else
+            {
+                blackWins = 1.0 / ply;
+            }
+            samples = 1;
         }
 
         PlayResult operator+(const PlayResult& other) const
         {
-            return {
+            return PlayResult {
                 whiteWins + other.whiteWins, blackWins + other.blackWins, samples + other.samples};
         }
     };
@@ -72,7 +87,7 @@ private:
     /*
      * Run random moves until a winner is found.
      */
-    PlayResult simulate();
+    PlayResult simulate(unsigned ply);
 
     const unsigned m_dimensions;
     Color m_turn {Color::White};

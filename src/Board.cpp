@@ -17,18 +17,29 @@ Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>>& pieces)
     : m_dimensions(dimensions)
     , m_moveTrait(IMoveTrait::create())
 {
+    unsigned index = 0;
     for (auto& p : pieces)
     {
-        m_pieces.emplace(p->getPosition(), *p);
+        m_pieceStorage[index] = *p;
+        m_pieces.push_back(&m_pieceStorage[index]);
+        m_board[p->getPosition().flatten(m_dimensions)] = &m_pieceStorage[index];
+        index++;
     }
 }
 
 Board::Board(const Board& other)
     : m_dimensions(other.m_dimensions)
     , m_turn(other.m_turn)
-    , m_pieces(other.m_pieces)
     , m_moveTrait(IMoveTrait::create())
 {
+    unsigned index = 0;
+    for (auto& p : other.m_pieces)
+    {
+        m_pieceStorage[index] = *p;
+        m_pieces.push_back(&m_pieceStorage[index]);
+        m_board[p->getPosition().flatten(m_dimensions)] = &m_pieceStorage[index];
+        index++;
+    }
 }
 
 unsigned
@@ -41,24 +52,28 @@ Board::getBoardDimension() const
 std::optional<Piece::Type>
 Board::pieceAt(const Pos& pos) const
 {
-    auto it = m_pieces.find(pos);
+    auto piece = m_board[pos.flatten(m_dimensions)];
 
-    if (it == m_pieces.end())
+    if (piece)
     {
-        return {};
+        return piece->getType();
     }
 
-    return it->second.getType();
+    return std::nullopt;
 }
 
 std::vector<Piece>
 Board::getPieces(const Color& which) const
 {
     std::vector<Piece> out;
-    std::ranges::copy(m_pieces | std::views::values | std::views::filter([which](const Piece& cur) {
-                          return cur.getColor() == which;
-                      }),
-                      std::back_inserter(out));
+
+    for (auto& piece : m_pieces)
+    {
+        if (piece->getColor() == which)
+        {
+            out.push_back(*piece);
+        }
+    }
 
     return out;
 }
@@ -66,25 +81,28 @@ Board::getPieces(const Color& which) const
 void
 Board::move(Move move)
 {
-    if (!pieceAt(move.from))
+    auto src = move.from.flatten(m_dimensions);
+    auto dst = move.to.flatten(m_dimensions);
+    auto p = m_board[src];
+
+    if (!p)
     {
         assert(false && "No piece at from");
     }
-    auto p = m_pieces.find(move.from)->second;
 
-    if (getTurn() != p.getColor())
+    if (getTurn() != p->getColor())
     {
         assert(false && "Turn wrong");
     }
 
-    if (m_pieces.find(move.to) != m_pieces.end())
+    if (m_board[dst])
     {
         assert(false && "piece at destination");
     }
 
-    p.place(move.to);
-    m_pieces.erase(move.from);
-    m_pieces.emplace(move.to, p);
+    p->place(move.to);
+    m_board[dst] = p;
+    m_board[src] = nullptr;
 
     scanCaptures();
 
@@ -106,10 +124,9 @@ Board::setTurn(Color which)
 std::optional<Color>
 Board::getWinner() const
 {
-    auto itKing =
-        std::find_if(m_pieces.begin(), m_pieces.end(), [](const std::pair<Pos, Piece>& cur) {
-            return cur.second.getType() == Piece::Type::King;
-        });
+    auto itKing = std::find_if(m_pieces.begin(), m_pieces.end(), [](const auto& cur) {
+        return cur->getType() == Piece::Type::King;
+    });
 
     if (itKing == m_pieces.end())
     {
@@ -117,7 +134,7 @@ Board::getWinner() const
         return Color::Black;
     }
     const auto dim = getBoardDimension();
-    auto kingPos = itKing->first;
+    auto kingPos = (*itKing)->getPosition();
 
     if (kingPos.x == 0 || kingPos.x == dim - 1 || kingPos.y == 0 || kingPos.y == dim - 1)
     {
@@ -131,7 +148,7 @@ std::future<std::optional<Move>>
 Board::calculateBestMove(const std::chrono::milliseconds& quota,
                          std::function<void()> onFutureReady)
 {
-    const auto nThreads = 8u;
+    const auto nThreads = 4u;
 
     auto possibleMoves = getPossibleMoves();
 
@@ -211,16 +228,19 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
 void
 Board::scanCaptures()
 {
-    std::set<Pos> captures;
+    etl::vector<unsigned, 18 * 18> capture_indices;
 
     auto dim = getBoardDimension();
 
-    for (auto& [pos, piece] : m_pieces)
+    for (auto index = 0u; index < m_pieces.size(); index++)
     {
-        if (piece.getColor() == m_turn)
+        auto piece = m_pieces[index];
+
+        if (piece->getColor() == m_turn)
         {
             continue;
         }
+        const auto pos = piece->getPosition();
 
         auto above = pieceColorAt(pos.above());
         auto below = pieceColorAt(pos.below());
@@ -228,29 +248,36 @@ Board::scanCaptures()
         auto left = pieceColorAt(pos.left());
 
         auto verticalEnemies =
-            above && below && *above != piece.getColor() && *below != piece.getColor();
+            above && below && *above != piece->getColor() && *below != piece->getColor();
         auto horizontalEnemies =
-            left && right && *left != piece.getColor() && *right != piece.getColor();
+            left && right && *left != piece->getColor() && *right != piece->getColor();
 
-        if (piece.getType() == Piece::Type::King && pos == Pos {dim / 2, dim / 2})
+        if (piece->getType() == Piece::Type::King && pos == Pos {dim / 2, dim / 2})
         {
             // The king in the castle - all 4 sides must be occupied
             if (verticalEnemies && horizontalEnemies)
             {
-                captures.insert(pos);
+                capture_indices.push_back(index);
             }
         }
         else
         {
             if (verticalEnemies || horizontalEnemies)
             {
-                captures.insert(pos);
+                capture_indices.push_back(index);
             }
         }
     }
 
-    for (auto& toErase : captures)
+    for (auto& idx : capture_indices)
     {
+        m_board[m_pieces[idx]->getPosition().flatten(dim)] = nullptr;
+    }
+
+    // Iterate in reverse order over the captured indicces
+    for (auto i = capture_indices.size(); i > 0; i--)
+    {
+        auto toErase = m_pieces.begin() + capture_indices[i - 1];
         m_pieces.erase(toErase);
     }
 }
@@ -258,14 +285,18 @@ Board::scanCaptures()
 std::optional<Color>
 Board::pieceColorAt(const Pos& pos) const
 {
-    auto it = m_pieces.find(pos);
-
-    if (it == m_pieces.end())
+    if (pos.x >= m_dimensions || pos.y >= m_dimensions)
     {
-        return {};
+        return std::nullopt;
     }
 
-    return it->second.getColor();
+    auto p = m_board[pos.flatten(m_dimensions)];
+    if (p)
+    {
+        return p->getColor();
+    }
+
+    return std::nullopt;
 }
 
 std::vector<Move>
@@ -273,14 +304,14 @@ Board::getPossibleMoves() const
 {
     std::vector<Move> possibleMoves;
 
-    for (auto& [pos, piece] : m_pieces)
+    for (auto& piece : m_pieces)
     {
-        if (piece.getColor() != m_turn)
+        if (piece->getColor() != m_turn)
         {
             continue;
         }
 
-        auto cur = m_moveTrait->getMoves(*this, piece);
+        auto cur = m_moveTrait->getMoves(*this, *piece);
         std::copy(cur.begin(), cur.end(), std::back_inserter(possibleMoves));
     }
 

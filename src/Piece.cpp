@@ -1,6 +1,13 @@
 #include <Piece.hpp>
 
+#include <cassert>
+
 using namespace tafl;
+
+Piece::Piece()
+    : m_type(Piece::Type::Unset)
+{
+}
 
 Piece::Piece(Piece::Type which)
     : m_type(which)
@@ -59,6 +66,9 @@ Piece::toChar(Piece::Type t)
 {
     switch (t)
     {
+    case Piece::Type::Unset:
+        assert(false && "Unset piece");
+        return ' ';
     case Piece::Type::White:
         return 'w';
     case Piece::Type::King:

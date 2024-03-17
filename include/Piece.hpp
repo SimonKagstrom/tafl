@@ -13,18 +13,19 @@ class Piece
 public:
     enum class Type
     {
+        Unset,
         Black,
         White,
         King,
     };
 
+    Piece();
+
     Piece(Piece::Type which);
 
     Piece(const Piece&) = default;
 
-    virtual ~Piece()
-    {
-    }
+    virtual ~Piece() = default;
 
     virtual void place(const Pos& pos);
 

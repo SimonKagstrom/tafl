@@ -2,6 +2,8 @@
 
 #include <IBoard.hpp>
 #include <IMoveTrait.hpp>
+#include <array>
+#include <etl/vector.h>
 #include <span>
 
 namespace tafl
@@ -91,7 +93,10 @@ private:
 
     const unsigned m_dimensions;
     Color m_turn {Color::White};
-    std::unordered_map<Pos, Piece> m_pieces;
+
+    std::array<Piece, 18 * 18> m_pieceStorage;
+    etl::vector<Piece*, 18 * 18> m_pieces;
+    std::array<Piece*, 18 * 18> m_board {nullptr};
 
     std::unique_ptr<IMoveTrait> m_moveTrait;
 };

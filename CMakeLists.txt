@@ -4,6 +4,7 @@ project (tafl)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
+find_package(etl REQUIRED)
 find_package(fmt REQUIRED)
 find_package(trompeloeil REQUIRED)
 find_package(doctest REQUIRED)
@@ -13,9 +14,11 @@ add_link_options(-fsanitize=address,undefined -g)
 add_library(tafl_interface INTERFACE
 )
 
-target_include_directories(tafl_interface INTERFACE
+target_include_directories(tafl_interface
+INTERFACE
     include
 )
+
 
 
 add_library(tafl EXCLUDE_FROM_ALL
@@ -28,6 +31,7 @@ target_link_libraries(tafl
 PUBLIC
     tafl_interface
     fmt::fmt
+    etl::etl
 )
 
 target_compile_options(tafl
@@ -47,6 +51,7 @@ target_link_libraries(tafl_release
 PUBLIC
     tafl_interface
     fmt::fmt
+    etl::etl
 )
 
 target_compile_options(tafl_release

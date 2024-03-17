@@ -80,6 +80,8 @@ private:
 
     void scanCaptures();
 
+    void fillPossibleMoves();
+
     std::optional<Color> pieceColorAt(const Pos& pos) const;
 
     std::future<std::vector<MoveAndResults>>
@@ -97,6 +99,8 @@ private:
     std::array<Piece, 18 * 18> m_pieceStorage;
     etl::vector<Piece*, 18 * 18> m_pieces;
     std::array<Piece*, 18 * 18> m_board {nullptr};
+
+    etl::vector<Move, 18*18*18> m_possibleMoves;
 
     std::unique_ptr<IMoveTrait> m_moveTrait;
 };

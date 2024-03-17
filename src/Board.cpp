@@ -299,6 +299,26 @@ Board::pieceColorAt(const Pos& pos) const
     return std::nullopt;
 }
 
+void Board::fillPossibleMoves()
+{
+    m_possibleMoves.clear();
+
+    for (auto& piece : m_pieces)
+    {
+        if (piece->getColor() != m_turn)
+        {
+            continue;
+        }
+
+        auto it = m_moveTrait->begin(*this, *piece);
+        while (it)
+        {
+            m_possibleMoves.push_back(it->move);
+            it = m_moveTrait->next(*it, *this, *piece);
+        }
+    }
+}
+
 std::vector<Move>
 Board::getPossibleMoves() const
 {
@@ -366,16 +386,16 @@ Board::simulate(unsigned ply)
             return Board::PlayResult(*winner, ply);
         }
 
-        auto possibleMoves = getPossibleMoves();
-        if (possibleMoves.empty())
+        fillPossibleMoves();
+        if (m_possibleMoves.empty())
         {
             // Impossible, but anyway
             return Board::PlayResult();
         }
 
-        auto selected = rand() % possibleMoves.size();
+        auto selected = rand() % m_possibleMoves.size();
 
-        auto m = possibleMoves[selected];
+        auto m = m_possibleMoves[selected];
         move(m);
         ply++;
     }

@@ -9,7 +9,7 @@ find_package(fmt REQUIRED)
 find_package(trompeloeil REQUIRED)
 find_package(doctest REQUIRED)
 
-add_link_options(-fsanitize=address,undefined -g)
+#add_link_options(-fsanitize=address,undefined -g)
 
 add_library(tafl_interface INTERFACE
 )
@@ -36,7 +36,6 @@ PUBLIC
 
 target_compile_options(tafl
 PUBLIC
-    -fsanitize=address,undefined
     -g
 )
 

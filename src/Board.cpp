@@ -311,8 +311,12 @@ Board::getPossibleMoves() const
             continue;
         }
 
-        auto cur = m_moveTrait->getMoves(*this, *piece);
-        std::copy(cur.begin(), cur.end(), std::back_inserter(possibleMoves));
+        auto it = m_moveTrait->begin(*this, *piece);
+        while (it)
+        {
+            possibleMoves.push_back(it->move);
+            it = m_moveTrait->next(*it, *this, *piece);
+        }
     }
 
     return possibleMoves;

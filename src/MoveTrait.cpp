@@ -20,20 +20,7 @@ public:
         auto yUp = pos;
         auto yDown = pos;
 
-        while (auto p = nextX(board, xLeft, -1))
-        {
-            out.push_back({pos, *p});
-        }
-        while (auto p = nextX(board, xRight, 1))
-        {
-            out.push_back({pos, *p});
-        }
-
-        while (auto p = nextY(board, yUp, -1))
-        {
-            out.push_back({pos, *p});
-        }
-        while (auto p = nextY(board, yDown, 1))
+        while (auto p = nextMove(board, xLeft, xRight, yUp, yDown))
         {
             out.push_back({pos, *p});
         }
@@ -42,6 +29,58 @@ public:
     }
 
 private:
+    std::optional<Pos>
+    nextMove(const IBoard& board, auto& xLeft, auto& xRight, auto& yUp, auto& yDown) const
+    {
+        if (auto p = nextX(board, xLeft, -1))
+        {
+            return p;
+        }
+        if (auto p = nextX(board, xRight, 1))
+        {
+            return p;
+        }
+
+        if (auto p = nextY(board, yUp, -1))
+        {
+            return p;
+        }
+        if (auto p = nextY(board, yDown, 1))
+        {
+            return p;
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<MoveIterator> begin(const IBoard& board, const Piece& piece) final
+    {
+        MoveIterator out(piece);
+
+        auto m = nextMove(board, out.xLeft, out.xRight, out.yUp, out.xDown);
+        if (m)
+        {
+            out.move = {piece.getPosition(), *m};
+            return out;
+        }
+
+        return std::nullopt;
+    }
+
+    std::optional<MoveIterator>
+    next(MoveIterator& iterator, const IBoard& board, const Piece& piece) final
+    {
+        auto m = nextMove(board, iterator.xLeft, iterator.xRight, iterator.yUp, iterator.xDown);
+        if (m)
+        {
+            iterator.move = {piece.getPosition(), *m};
+            return iterator;
+        }
+
+        return std::nullopt;
+    }
+
+
     std::optional<Pos> nextPos(const IBoard& board, Pos& pos, int dir, int isX) const
     {
         auto dim = board.getBoardDimension();

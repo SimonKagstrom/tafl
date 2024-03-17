@@ -13,7 +13,7 @@ add_executable(ut
 
 target_link_libraries(ut
 PRIVATE
-    tafl
+    tafl_release
     trompeloeil::trompeloeil
     doctest::doctest
 )

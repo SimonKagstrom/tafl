@@ -174,9 +174,9 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
                 }
             }
 
-            std::ranges::sort(results, [black](const MoveAndResults& a, const MoveAndResults& b) {
-                return black ? a.results.blackWins < b.results.blackWins
-                             : a.results.whiteWins < b.results.whiteWins;
+            std::ranges::sort(results, [](const MoveAndResults& a, const MoveAndResults& b) {
+                return a.results.blackWins / a.results.whiteWins >
+                       b.results.blackWins / b.results.whiteWins;
             });
 
             for (auto x : results)
@@ -184,18 +184,25 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
                 auto f = x.move.from;
                 auto t = x.move.to;
 
-                fmt::print("{}:{} -> {}:{}, leads to {:.1f}% black wins ({:.3f}:{:.3f} of {})\n",
+                fmt::print("{}:{} -> {}:{}, leads to {} black wins ({:.3f}:{:.3f} of {})\n",
                            f.x,
                            f.y,
                            t.x,
                            t.y,
-                           x.results.blackWins / x.results.samples * 100.0f,
+                           x.results.blackWins / x.results.whiteWins,
                            x.results.blackWins,
                            x.results.whiteWins,
                            x.results.samples);
             }
 
-            out = results.back().move;
+            if (black)
+            {
+                out = results.front().move;
+            }
+            else
+            {
+                out = results.back().move;
+            }
 
             return out;
         });

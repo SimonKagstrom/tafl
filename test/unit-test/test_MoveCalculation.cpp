@@ -14,7 +14,7 @@ namespace
 auto
 doPlay(auto &board)
 {
-    auto f = board.calculateBestMove(100ms, []() {});
+    auto f = board.calculateBestMove(3s, []() {});
     f.wait();
     auto m = f.get();
     REQUIRE(m);

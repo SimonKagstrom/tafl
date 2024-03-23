@@ -5,6 +5,7 @@ find_package(doctest REQUIRED)
 add_executable(ut
     main.cpp
     test_Board.cpp
+    test_BoardHashTable.cpp
     test_MoveCalculation.cpp
     test_MoveTrait.cpp
     test_Piece.cpp

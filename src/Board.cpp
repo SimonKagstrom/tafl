@@ -109,6 +109,28 @@ Board::move(Move move)
     setTurn(!m_turn);
 }
 
+uint64_t
+Board::pieceChecksum(const Piece& piece) const
+{
+    auto pos = piece.getPosition();
+
+    return (pos.y * 180 + pos.x) * 4 + static_cast<unsigned>(piece.getType());
+}
+
+uint64_t
+Board::checksum() const
+{
+    uint64_t sum = 0;
+
+    for (auto& p : m_pieces)
+    {
+        sum += pieceChecksum(*p);
+    }
+
+    return sum;
+}
+
+
 Color
 Board::getTurn() const
 {
@@ -148,7 +170,7 @@ std::future<std::optional<Move>>
 Board::calculateBestMove(const std::chrono::milliseconds& quota,
                          std::function<void()> onFutureReady)
 {
-    const auto nThreads = 4u;
+    const auto nThreads = 6u;
 
     auto possibleMoves = getPossibleMoves();
 
@@ -228,7 +250,7 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
 void
 Board::scanCaptures()
 {
-    etl::vector<unsigned, 18 * 18> capture_indices;
+    etl::vector<unsigned, 18 * 18 / 2> capture_indices;
 
     auto dim = getBoardDimension();
 
@@ -299,9 +321,10 @@ Board::pieceColorAt(const Pos& pos) const
     return std::nullopt;
 }
 
-void Board::fillPossibleMoves()
+void
+Board::fillPossibleMoves()
 {
-    m_possibleMoves.clear();
+    m_possibleMoves.uninitialized_resize(0);
 
     for (auto& piece : m_pieces)
     {
@@ -352,6 +375,7 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
 
     return std::async(std::launch::async, [bIn, moves, quota] {
         // Create an output vector
+        auto known_boards = std::make_unique<TaflBoardHashTable>();
         auto out = std::vector<Board::MoveAndResults>();
         out.reserve(moves.size());
 
@@ -366,7 +390,7 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
             {
                 auto b = bIn;
                 b.move(cur.move);
-                cur.results = cur.results + b.simulate(1);
+                cur.results = cur.results + b.simulate(*known_boards, 5);
             }
         }
 
@@ -375,7 +399,7 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
 }
 
 Board::PlayResult
-Board::simulate(unsigned ply)
+Board::simulate(TaflBoardHashTable& known_boards, unsigned ply)
 {
     while (true)
     {
@@ -397,6 +421,7 @@ Board::simulate(unsigned ply)
 
         auto m = m_possibleMoves[selected];
         move(m);
+
         ply++;
     }
 }

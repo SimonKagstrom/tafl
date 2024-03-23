@@ -1,5 +1,6 @@
 #pragma once
 
+#include <BoardHashTable.hpp>
 #include <IBoard.hpp>
 #include <IMoveTrait.hpp>
 #include <array>
@@ -35,15 +36,17 @@ public:
                       std::function<void()> onFutureReady) override;
 
 private:
+    using TaflBoardHashTable = BoardHashTable<1024*1024>;
+
     struct PlayResult
     {
-        double whiteWins {0};
-        double blackWins {0};
+        float whiteWins {0};
+        float blackWins {0};
         unsigned samples {0};
 
         PlayResult() = default;
 
-        PlayResult(double w, double b, unsigned s)
+        PlayResult(auto w, auto b, unsigned s)
             : whiteWins {w}
             , blackWins {b}
             , samples {s}
@@ -54,11 +57,11 @@ private:
         {
             if (win == Color::White)
             {
-                whiteWins = 1.0 / ply;
+                whiteWins = 1.0f / ply;
             }
             else
             {
-                blackWins = 1.0 / ply;
+                blackWins = 1.0f / ply;
             }
             samples = 1;
         }
@@ -91,7 +94,11 @@ private:
     /*
      * Run random moves until a winner is found.
      */
-    PlayResult simulate(unsigned ply);
+    PlayResult simulate(TaflBoardHashTable &known_boards, unsigned ply);
+
+    uint64_t checksum() const;
+
+    uint64_t pieceChecksum(const Piece& piece) const;
 
     const unsigned m_dimensions;
     Color m_turn {Color::White};
@@ -100,7 +107,7 @@ private:
     etl::vector<Piece*, 18 * 18> m_pieces;
     std::array<Piece*, 18 * 18> m_board {nullptr};
 
-    etl::vector<Move, 18*18*18> m_possibleMoves;
+    etl::vector<Move, 18 * 18 * 18> m_possibleMoves;
 
     std::unique_ptr<IMoveTrait> m_moveTrait;
 };

@@ -16,7 +16,7 @@ main(int argc, const char* argv[])
     do
     {
         IBoard::printBoard(*board);
-        auto best = board->calculateBestMove(2s, []() {});
+        auto best = board->calculateBestMove(1s, []() {});
         best.wait();
 
         if (best.valid())

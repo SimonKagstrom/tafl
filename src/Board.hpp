@@ -36,6 +36,9 @@ public:
                       std::function<void()> onFutureReady) override;
 
 private:
+    // Random games longer than this are considered a draw
+    static constexpr unsigned kMaxSimulationPly = 400;
+
     using TaflBoardHashTable = BoardHashTable<1024*1024>;
 
     struct PlayResult
@@ -55,13 +58,19 @@ private:
 
         PlayResult(Color win, unsigned ply)
         {
+            // Quick wins (and slow losses) are worth a bit more, so that the winning
+            // side goes for the kill instead of shuffling around
+            const auto margin = 0.3f * std::min(ply, kMaxSimulationPly) / kMaxSimulationPly;
+
             if (win == Color::White)
             {
-                whiteWins = 1.0f / ply;
+                whiteWins = 1.0f - margin;
+                blackWins = margin;
             }
             else
             {
-                blackWins = 1.0f / ply;
+                blackWins = 1.0f - margin;
+                whiteWins = margin;
             }
             samples = 1;
         }
@@ -81,7 +90,12 @@ private:
 
     Board(const Board&);
 
-    void scanCaptures();
+    void scanCaptures(const Pos& moved);
+
+    /*
+     * Return a move which immediately wins the game for the current color, if any.
+     */
+    std::optional<Move> findWinningMove() const;
 
     void fillPossibleMoves();
 
@@ -93,8 +107,10 @@ private:
 
     /*
      * Run random moves until a winner is found.
+     *
+     * @param ply the number of moves already played from the searched position
      */
-    PlayResult simulate(TaflBoardHashTable &known_boards, unsigned ply);
+    PlayResult simulate(unsigned ply);
 
     uint64_t checksum() const;
 
@@ -110,6 +126,8 @@ private:
     etl::vector<Move, 18 * 18 * 18> m_possibleMoves;
 
     std::unique_ptr<IMoveTrait> m_moveTrait;
+
+    std::unique_ptr<TaflBoardHashTable> m_knownPlays;
 };
 
 } // namespace tafl

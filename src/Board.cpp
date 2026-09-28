@@ -7,6 +7,7 @@
 #include <fmt/format.h>
 #include <future>
 #include <map>
+#include <random>
 #include <ranges>
 #include <set>
 #include <vector>
@@ -16,6 +17,7 @@ using namespace tafl;
 Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>>& pieces)
     : m_dimensions(dimensions)
     , m_moveTrait(IMoveTrait::create())
+    , m_knownPlays(std::make_unique<TaflBoardHashTable>())
 {
     unsigned index = 0;
     for (auto& p : pieces)
@@ -25,7 +27,14 @@ Board::Board(unsigned dimensions, std::vector<std::unique_ptr<Piece>>& pieces)
         m_board[p->getPosition().flatten(m_dimensions)] = &m_pieceStorage[index];
         index++;
     }
+
+    std::ifstream file("known_plays.dat");
+    if (file)
+    {
+        m_knownPlays->fillFromFile(file);
+    }
 }
+
 
 Board::Board(const Board& other)
     : m_dimensions(other.m_dimensions)
@@ -104,7 +113,7 @@ Board::move(Move move)
     m_board[dst] = p;
     m_board[src] = nullptr;
 
-    scanCaptures();
+    scanCaptures(move.to);
 
     setTurn(!m_turn);
 }
@@ -182,6 +191,13 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
         return p.get_future();
     }
 
+    // No need to search if the game can be won right away
+    if (auto win = findWinningMove())
+    {
+        p.set_value(win);
+        return p.get_future();
+    }
+
     std::vector<std::future<std::vector<MoveAndResults>>> threadFutures;
     for (auto thr = 0u; thr < nThreads; thr++)
     {
@@ -192,7 +208,7 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
     const auto number_of_moves = possibleMoves.size();
     return std::async(
         std::launch::async,
-        [black, number_of_moves, threadFutures = std::move(threadFutures)]() mutable {
+        [this, black, number_of_moves, threadFutures = std::move(threadFutures)]() mutable {
             std::optional<Move> out;
             std::vector<MoveAndResults> results;
             results.resize(number_of_moves);
@@ -213,34 +229,46 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
                 }
             }
 
+            // The most visited move is the most robust choice in MCTS
             std::ranges::sort(results, [](const MoveAndResults& a, const MoveAndResults& b) {
-                return a.results.blackWins / a.results.whiteWins >
-                       b.results.blackWins / b.results.whiteWins;
+                return a.results.samples > b.results.samples;
             });
 
-            for (auto x : results)
+            for (auto& x : results)
             {
                 auto f = x.move.from;
                 auto t = x.move.to;
 
-                fmt::print("{}:{} -> {}:{}, leads to {} black wins ({:.3f}:{:.3f} of {})\n",
+                auto total = x.results.blackWins + x.results.whiteWins;
+                fmt::print("{}:{} -> {}:{}, {:.3f} win rate for {} ({} visits)\n",
                            f.x,
                            f.y,
                            t.x,
                            t.y,
-                           x.results.blackWins / x.results.whiteWins,
-                           x.results.blackWins,
-                           x.results.whiteWins,
+                           total > 0 ? (black ? x.results.blackWins : x.results.whiteWins) / total
+                                     : 0.0f,
+                           black ? "black" : "white",
                            x.results.samples);
+
+                auto bIn = Board(*this);
+                bIn.move(x.move);
+                auto checksum = bIn.checksum();
+                auto database = m_knownPlays->get(checksum);
+                if (database)
+                {
+                    x.results.blackWins += database->blackWins;
+                    x.results.whiteWins += database->whiteWins;
+                }
+
+                m_knownPlays->insert(checksum, x.results.whiteWins, x.results.blackWins);
             }
 
-            if (black)
+            out = results.front().move;
+
+            std::ofstream file("known_plays.dat");
+            if (file)
             {
-                out = results.front().move;
-            }
-            else
-            {
-                out = results.back().move;
+                m_knownPlays->writeToFile(file);
             }
 
             return out;
@@ -248,60 +276,149 @@ Board::calculateBestMove(const std::chrono::milliseconds& quota,
 }
 
 void
-Board::scanCaptures()
+Board::scanCaptures(const Pos& moved)
 {
-    etl::vector<unsigned, 18 * 18 / 2> capture_indices;
+    // Captures are active: only the piece that just moved can capture, and only
+    // the enemy pieces directly next to it. A piece may safely move in between
+    // two enemies.
+    const auto dim = getBoardDimension();
+    const auto castle = Pos {dim / 2, dim / 2};
+    const auto isMover = [this](const Pos& pos) { return pieceColorAt(pos) == m_turn; };
 
-    auto dim = getBoardDimension();
+    const std::array<std::pair<int, int>, 4> directions {{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}};
 
-    for (auto index = 0u; index < m_pieces.size(); index++)
+    for (auto [dx, dy] : directions)
     {
-        auto piece = m_pieces[index];
-
-        if (piece->getColor() == m_turn)
+        auto victimPos = Pos {moved.x + dx, moved.y + dy};
+        if (victimPos.x >= dim || victimPos.y >= dim)
         {
             continue;
         }
-        const auto pos = piece->getPosition();
 
-        auto above = pieceColorAt(pos.above());
-        auto below = pieceColorAt(pos.below());
-        auto right = pieceColorAt(pos.right());
-        auto left = pieceColorAt(pos.left());
+        auto victim = m_board[victimPos.flatten(dim)];
+        if (!victim || victim->getColor() == m_turn)
+        {
+            continue;
+        }
 
-        auto verticalEnemies =
-            above && below && *above != piece->getColor() && *below != piece->getColor();
-        auto horizontalEnemies =
-            left && right && *left != piece->getColor() && *right != piece->getColor();
-
-        if (piece->getType() == Piece::Type::King && pos == Pos {dim / 2, dim / 2})
+        bool captured = false;
+        if (victim->getType() == Piece::Type::King && victimPos == castle)
         {
             // The king in the castle - all 4 sides must be occupied
-            if (verticalEnemies && horizontalEnemies)
+            captured = isMover(victimPos.above()) && isMover(victimPos.below()) &&
+                       isMover(victimPos.left()) && isMover(victimPos.right());
+        }
+        else
+        {
+            captured = isMover(Pos {victimPos.x + dx, victimPos.y + dy});
+        }
+
+        if (captured)
+        {
+            m_board[victimPos.flatten(dim)] = nullptr;
+            m_pieces.erase(std::find(m_pieces.begin(), m_pieces.end(), victim));
+        }
+    }
+}
+
+std::optional<Move>
+Board::findWinningMove() const
+{
+    const auto dim = getBoardDimension();
+    const auto castle = Pos {dim / 2, dim / 2};
+
+    auto itKing = std::find_if(m_pieces.begin(), m_pieces.end(), [](const auto& cur) {
+        return cur->getType() == Piece::Type::King;
+    });
+    if (itKing == m_pieces.end())
+    {
+        return std::nullopt;
+    }
+    const auto kingPos = (*itKing)->getPosition();
+
+    const std::array<std::pair<int, int>, 4> directions {{{0, -1}, {0, 1}, {-1, 0}, {1, 0}}};
+
+    if (m_turn == Color::White)
+    {
+        // Can the king slide to an edge?
+        for (auto [dx, dy] : directions)
+        {
+            auto cur = kingPos;
+            while (true)
             {
-                capture_indices.push_back(index);
+                cur = Pos {cur.x + dx, cur.y + dy};
+                if (cur.x >= dim || cur.y >= dim || m_board[cur.flatten(dim)] || cur == castle)
+                {
+                    break;
+                }
+                if (cur.x == 0 || cur.x == dim - 1 || cur.y == 0 || cur.y == dim - 1)
+                {
+                    return Move {kingPos, cur};
+                }
+            }
+        }
+
+        return std::nullopt;
+    }
+
+    // Black: can a piece move next to the king and capture it?
+    const auto isBlack = [this](const Pos& pos) { return pieceColorAt(pos) == Color::Black; };
+    for (auto [dx, dy] : directions)
+    {
+        auto target = Pos {kingPos.x + dx, kingPos.y + dy};
+        if (target.x >= dim || target.y >= dim || m_board[target.flatten(dim)] || target == castle)
+        {
+            continue;
+        }
+
+        bool captures = false;
+        if (kingPos == castle)
+        {
+            captures = true;
+            for (auto [ox, oy] : directions)
+            {
+                auto other = Pos {kingPos.x + ox, kingPos.y + oy};
+                if (!(other == target) && !isBlack(other))
+                {
+                    captures = false;
+                }
             }
         }
         else
         {
-            if (verticalEnemies || horizontalEnemies)
+            captures = isBlack(Pos {kingPos.x - dx, kingPos.y - dy});
+        }
+
+        if (!captures)
+        {
+            continue;
+        }
+
+        // Is there a black piece which can reach the target square?
+        for (auto [sx, sy] : directions)
+        {
+            auto cur = target;
+            while (true)
             {
-                capture_indices.push_back(index);
+                cur = Pos {cur.x + sx, cur.y + sy};
+                if (cur.x >= dim || cur.y >= dim || cur == castle)
+                {
+                    break;
+                }
+                auto p = m_board[cur.flatten(dim)];
+                if (p)
+                {
+                    if (p->getColor() == Color::Black)
+                    {
+                        return Move {cur, target};
+                    }
+                    break;
+                }
             }
         }
     }
 
-    for (auto& idx : capture_indices)
-    {
-        m_board[m_pieces[idx]->getPosition().flatten(dim)] = nullptr;
-    }
-
-    // Iterate in reverse order over the captured indicces
-    for (auto i = capture_indices.size(); i > 0; i--)
-    {
-        auto toErase = m_pieces.begin() + capture_indices[i - 1];
-        m_pieces.erase(toErase);
-    }
+    return std::nullopt;
 }
 
 std::optional<Color>
@@ -365,6 +482,33 @@ Board::getPossibleMoves() const
     return possibleMoves;
 }
 
+namespace
+{
+
+unsigned
+randomIndex(size_t n)
+{
+    thread_local std::minstd_rand rng {std::random_device {}()};
+
+    return std::uniform_int_distribution<unsigned>(0, n - 1)(rng);
+}
+
+// A node in the Monte-Carlo search tree, i.e., the board after "move" was played
+struct Node
+{
+    Move move;
+    Color mover; // The color which played move
+    unsigned parent {0};
+
+    float wins {0}; // From the view of mover
+    unsigned visits {0};
+
+    std::vector<Move> untried;
+    std::vector<unsigned> children;
+};
+
+} // namespace
+
 std::future<std::vector<Board::MoveAndResults>>
 Board::runSimulationInThread(const std::chrono::milliseconds& quota,
                              std::span<const Move> movesToSimulate)
@@ -374,23 +518,133 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
     auto moves = std::vector<Move>(movesToSimulate.begin(), movesToSimulate.end());
 
     return std::async(std::launch::async, [bIn, moves, quota] {
-        // Create an output vector
-        auto known_boards = std::make_unique<TaflBoardHashTable>();
-        auto out = std::vector<Board::MoveAndResults>();
-        out.reserve(moves.size());
+        // UCT exploration constant, rewards are in [0, 1]
+        constexpr auto kExploration = 0.7f;
 
-        auto v = std::views::transform(
-            moves, [](auto&& move) { return Board::MoveAndResults {move, Board::PlayResult()}; });
-        std::ranges::copy(v, std::back_inserter(out));
+        // The root node is the current board (where the opponent made the last move)
+        std::vector<Node> tree(1);
+        tree[0].mover = !bIn.getTurn();
+        tree[0].untried = moves;
 
         auto start = std::chrono::steady_clock::now();
         while (std::chrono::steady_clock::now() - start < quota)
         {
-            for (auto& cur : out)
+            auto b = bIn;
+            auto cur = 0u;
+            auto depth = 0u;
+
+            // Selection: walk down fully expanded nodes, picking the best by UCT
+            while (tree[cur].untried.empty() && !tree[cur].children.empty())
             {
-                auto b = bIn;
-                b.move(cur.move);
-                cur.results = cur.results + b.simulate(*known_boards, 5);
+                const auto logParent = std::log(static_cast<float>(tree[cur].visits));
+                auto best = tree[cur].children.front();
+                auto bestValue = -1.0f;
+
+                for (auto childIdx : tree[cur].children)
+                {
+                    const auto& child = tree[childIdx];
+                    auto value = child.wins / child.visits +
+                                 kExploration * std::sqrt(logParent / child.visits);
+                    if (value > bestValue)
+                    {
+                        bestValue = value;
+                        best = childIdx;
+                    }
+                }
+
+                b.move(tree[best].move);
+                cur = best;
+                depth++;
+            }
+
+            // Expansion: try one unexplored move
+            if (!tree[cur].untried.empty())
+            {
+                auto& untried = tree[cur].untried;
+                auto idx = randomIndex(untried.size());
+                auto m = untried[idx];
+                untried[idx] = untried.back();
+                untried.pop_back();
+
+                auto mover = b.getTurn();
+                b.move(m);
+
+                Node child;
+                child.move = m;
+                child.mover = mover;
+                child.parent = cur;
+                if (!b.getWinner())
+                {
+                    // If there is an immediately winning move, there's no point in
+                    // exploring anything else
+                    if (auto win = b.findWinningMove())
+                    {
+                        child.untried.push_back(*win);
+                    }
+                    else
+                    {
+                        child.untried = b.getPossibleMoves();
+                    }
+                }
+
+                tree.push_back(std::move(child));
+                auto childIdx = static_cast<unsigned>(tree.size() - 1);
+                tree[cur].children.push_back(childIdx);
+                cur = childIdx;
+                depth++;
+            }
+
+            // Simulation and backpropagation
+            auto result = b.simulate(depth);
+            while (true)
+            {
+                auto& node = tree[cur];
+
+                node.visits++;
+                if (result.samples == 0)
+                {
+                    // Draw
+                    node.wins += 0.5f;
+                }
+                else if (node.mover == Color::White)
+                {
+                    node.wins += result.whiteWins;
+                }
+                else
+                {
+                    node.wins += result.blackWins;
+                }
+
+                if (cur == 0)
+                {
+                    break;
+                }
+                cur = node.parent;
+            }
+        }
+
+        // Report the root children, in the same order as the moves we got
+        auto out = std::vector<Board::MoveAndResults>();
+        out.reserve(moves.size());
+        for (auto& m : moves)
+        {
+            out.push_back({m, Board::PlayResult()});
+        }
+
+        for (auto childIdx : tree[0].children)
+        {
+            const auto& child = tree[childIdx];
+            auto it = std::ranges::find_if(
+                out, [&child](const auto& cur) { return cur.move == child.move; });
+            auto losses = child.visits - child.wins;
+
+            if (child.mover == Color::White)
+            {
+                it->results = Board::PlayResult(child.wins, losses, child.visits);
+            }
+            else
+            {
+                it->results = Board::PlayResult(losses, child.wins, child.visits);
             }
         }
 
@@ -399,9 +653,9 @@ Board::runSimulationInThread(const std::chrono::milliseconds& quota,
 }
 
 Board::PlayResult
-Board::simulate(TaflBoardHashTable& known_boards, unsigned ply)
+Board::simulate(unsigned ply)
 {
-    while (true)
+    for (; ply < kMaxSimulationPly; ply++)
     {
         auto winner = getWinner();
 
@@ -410,20 +664,24 @@ Board::simulate(TaflBoardHashTable& known_boards, unsigned ply)
             return Board::PlayResult(*winner, ply);
         }
 
+        // Always take a win when there is one, otherwise play randomly
+        if (auto win = findWinningMove())
+        {
+            move(*win);
+            continue;
+        }
+
         fillPossibleMoves();
         if (m_possibleMoves.empty())
         {
-            // Impossible, but anyway
-            return Board::PlayResult();
+            // No moves available, which loses the game
+            return Board::PlayResult(!m_turn, ply);
         }
 
-        auto selected = rand() % m_possibleMoves.size();
-
-        auto m = m_possibleMoves[selected];
-        move(m);
-
-        ply++;
+        move(m_possibleMoves[randomIndex(m_possibleMoves.size())]);
     }
+
+    return Board::PlayResult();
 }
 
 

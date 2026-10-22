@@ -1,7 +1,5 @@
 enable_testing()
 
-find_package(doctest REQUIRED)
-
 add_executable(ut
     main.cpp
     test_Board.cpp

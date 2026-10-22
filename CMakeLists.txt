@@ -1,13 +1,40 @@
-cmake_minimum_required (VERSION 3.21)
-project (tafl)
+cmake_minimum_required (VERSION 3.28)
+project (tafl LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(etl REQUIRED)
-find_package(fmt REQUIRED)
-find_package(trompeloeil REQUIRED)
-find_package(doctest REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+  etl
+  GIT_REPOSITORY https://github.com/ETLCPP/etl.git
+  GIT_TAG        20.47.1
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_Declare(
+  fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG        11.2.0
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_Declare(
+  doctest
+  GIT_REPOSITORY https://github.com/doctest/doctest.git
+  GIT_TAG        v2.5.3
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_Declare(
+  trompeloeil
+  GIT_REPOSITORY https://github.com/rollbear/trompeloeil.git
+  GIT_TAG        v49
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_MakeAvailable(etl fmt doctest trompeloeil)
 
 #add_link_options(-fsanitize=address,undefined -g)
 

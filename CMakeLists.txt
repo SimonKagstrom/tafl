@@ -62,4 +62,5 @@ PUBLIC
 
 
 add_subdirectory(src/auto-player)
+add_subdirectory(src/text-player)
 add_subdirectory(test/unit-test)
